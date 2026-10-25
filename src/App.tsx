@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "react-oidc-context";
 
@@ -71,23 +70,28 @@ const DEMO_PRODUCTS: Product[] = [
     descripcion: "Masa suave, canela y glaseado delicado.",
     precio: 2590,
     categoria: "Pastelería",
-    emoji: "🍥",
+    emoji: "🥮",
   },
 ];
 
 export default function App() {
   const auth = useAuth();
 
-  const [products, setProducts] = useState<Product[]>(DEMO_PRODUCTS);
+  const [products, setProducts] =
+    useState<Product[]>(DEMO_PRODUCTS);
   const [category, setCategory] = useState("Todos");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
   const groups =
-    (auth.user?.profile?.["cognito:groups"] as string[] | undefined) ?? [];
+    (auth.user?.profile?.["cognito:groups"] as
+      | string[]
+      | undefined) ?? [];
 
-  const role = groups.includes("Administrador") || groups.includes("Admin")
+  const role = groups.includes("Administrador") ||
+    groups.includes("Admin")
     ? "Administrador"
     : groups.includes("Colaborador")
       ? "Colaborador"
@@ -117,7 +121,9 @@ export default function App() {
       setLoading(true);
 
       try {
-        const response = await fetch(`${API_URL}/api/productos`);
+        const response = await fetch(
+          `${API_URL}/api/productos`
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -125,7 +131,11 @@ export default function App() {
 
         const data: Product[] = await response.json();
 
-        if (!cancelled && Array.isArray(data) && data.length > 0) {
+        if (
+          !cancelled &&
+          Array.isArray(data) &&
+          data.length > 0
+        ) {
           setProducts(data);
           setMessage("");
         }
@@ -151,7 +161,9 @@ export default function App() {
     () =>
       category === "Todos"
         ? products
-        : products.filter((p) => p.categoria === category),
+        : products.filter(
+            (product) => product.categoria === category
+          ),
     [products, category]
   );
 
@@ -161,7 +173,9 @@ export default function App() {
   );
 
   const total = products.reduce(
-    (sum, p) => sum + (cart[String(p.id)] ?? 0) * p.precio,
+    (sum, product) =>
+      sum +
+      (cart[String(product.id)] ?? 0) * product.precio,
     0
   );
 
@@ -175,23 +189,25 @@ export default function App() {
   const login = () => {
     if (!COGNITO_DOMAIN || !COGNITO_CLIENT_ID) {
       setMessage(
-        "Falta configurar VITE_COGNITO_DOMAIN o VITE_COGNITO_CLIENT_ID en las variables de entorno de Vercel."
+        "Falta configurar VITE_COGNITO_DOMAIN o VITE_COGNITO_CLIENT_ID en Vercel."
       );
       return;
     }
 
     if (auth.isLoading) {
-      setMessage("Espera un momento mientras se verifica tu sesión.");
+      setMessage(
+        "Espera un momento mientras se verifica tu sesión."
+      );
       return;
     }
 
-    void auth.signinRedirect({
-      redirect_uri: REDIRECT_URI,
-    }).catch(() => {
-      setMessage(
-        "No se pudo iniciar sesión. Revisa el App Client y las URL de Cognito."
-      );
-    });
+    void auth
+      .signinRedirect({ redirect_uri: REDIRECT_URI })
+      .catch(() => {
+        setMessage(
+          "No se pudo iniciar sesión. Revisa la configuración de Cognito."
+        );
+      });
   };
 
   const logout = async () => {
@@ -211,14 +227,17 @@ export default function App() {
         window.location.assign(REDIRECT_URI);
       }
     } catch {
-      setMessage("No se pudo cerrar la sesión correctamente.");
+      setMessage(
+        "No se pudo cerrar la sesión correctamente."
+      );
     }
   };
 
   const add = (id: string | number) => {
     setCart((previous) => ({
       ...previous,
-      [String(id)]: (previous[String(id)] ?? 0) + 1,
+      [String(id)]:
+        (previous[String(id)] ?? 0) + 1,
     }));
 
     setMessage("");
@@ -241,12 +260,16 @@ export default function App() {
 
   async function checkout() {
     if (!auth.isAuthenticated) {
-      setMessage("Inicia sesión para continuar con tu pedido.");
+      setMessage(
+        "Inicia sesión para continuar con tu pedido."
+      );
       return;
     }
 
     if (!cartCount) {
-      setMessage("Agrega productos al carrito primero.");
+      setMessage(
+        "Agrega productos al carrito primero."
+      );
       return;
     }
 
@@ -258,22 +281,25 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/pedidos`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          cliente: email,
-          items: products
-            .filter((p) => cart[String(p.id)])
-            .map((p) => ({
-              productoId: p.id,
-              nombre: p.nombre,
-              cantidad: cart[String(p.id)],
-              precio: p.precio,
-            })),
-          total,
-        }),
-      });
+      const response = await fetch(
+        `${API_URL}/api/pedidos`,
+        {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            cliente: email,
+            items: products
+              .filter((product) => cart[String(product.id)])
+              .map((product) => ({
+                productoId: product.id,
+                nombre: product.nombre,
+                cantidad: cart[String(product.id)],
+                precio: product.precio,
+              })),
+            total,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -284,7 +310,9 @@ export default function App() {
     } catch (error) {
       setMessage(
         `No se pudo enviar el pedido: ${
-          error instanceof Error ? error.message : "error de red"
+          error instanceof Error
+            ? error.message
+            : "error de red"
         }. Revisa API Gateway, el backend y CORS.`
       );
     }
@@ -292,24 +320,57 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="announcement">
+        HORNEAMOS ALGO ESPECIAL PARA TI
+        <span>✳</span>
+        CAFÉ DE ESPECIALIDAD · PASTELERÍA ARTESANAL
+      </div>
+
       <header className="topbar">
-        <a className="brand" href="#inicio">
+        <a
+          className="brand"
+          href="#inicio"
+          aria-label="Coffee Flower inicio"
+        >
           <span className="brand-icon">✿</span>
-          <span>
-            Coffee <i>Flower</i>
-            <small>CAFÉ · PASTELERÍA</small>
+          <span className="brand-name">
+            coffee flower
+            <small>PASTRY · COFFEE HOUSE</small>
           </span>
         </a>
 
-        <nav>
-          <a href="#menu">Menú</a>
-          <a href="#nosotros">Nosotros</a>
-          <a href="#pedido">Mi pedido ({cartCount})</a>
+        <button
+          className="mobile-toggle"
+          onClick={() => setMobileMenu(!mobileMenu)}
+          aria-label="Abrir menú"
+        >
+          ☰
+        </button>
+
+        <nav className={mobileMenu ? "nav-open" : ""}>
+          <a
+            href="#menu"
+            onClick={() => setMobileMenu(false)}
+          >
+            La carta
+          </a>
+          <a
+            href="#nosotros"
+            onClick={() => setMobileMenu(false)}
+          >
+            Nuestra historia
+          </a>
+          <a
+            href="#pedido"
+            onClick={() => setMobileMenu(false)}
+          >
+            Carrito <span className="cart-pill">{cartCount}</span>
+          </a>
         </nav>
 
         <div className="account">
           {auth.isLoading ? (
-            <span>Verificando sesión...</span>
+            <span className="role">Verificando…</span>
           ) : auth.isAuthenticated ? (
             <>
               <span className="role">{role}</span>
@@ -317,7 +378,7 @@ export default function App() {
                 className="button button-outline"
                 onClick={() => void logout()}
               >
-                Salir
+                Salir ↗
               </button>
             </>
           ) : (
@@ -326,7 +387,7 @@ export default function App() {
               onClick={login}
               disabled={auth.isLoading}
             >
-              Iniciar sesión
+              Mi cuenta ↗
             </button>
           )}
         </div>
@@ -335,93 +396,165 @@ export default function App() {
       <main>
         <section className="hero" id="inicio">
           <div className="hero-copy">
-            <span className="eyebrow">UN MOMENTO PARA TI</span>
+            <span className="eyebrow">
+              <span className="eyebrow-line" />
+              UNA DULCE FORMA DE PAUSAR
+            </span>
+
             <h1>
-              Pequeños placeres,
+              Un capricho
               <br />
-              <em>grandes momentos.</em>
+              que <em>florece</em>
+              <br />
+              en tu día.
             </h1>
+
             <p>
-              Café preparado con cariño y pastelería recién hecha para
-              acompañar tus días.
+              Café con carácter, pastelería hecha con cariño
+              y pequeños momentos que merecen disfrutarse sin
+              prisa.
             </p>
-            <a className="button button-dark" href="#menu">
-              Descubrir el menú <span>↗</span>
-            </a>
-            <div className="hero-note">
-              <span>✦</span> Hecho con cariño, servido con aroma.
+
+            <div className="hero-actions">
+              <a className="button button-light" href="#menu">
+                Explorar la carta <span>↗</span>
+              </a>
+              <span className="hero-aside">
+                Preparado cada día
+                <br />
+                con ingredientes ricos.
+              </span>
+            </div>
+
+            <div className="hero-bottom-note">
+              <span>01 / 03</span>
+              <span className="note-rule" />
+              COFFEE, CAKE & A LITTLE JOY
             </div>
           </div>
 
-          <div className="hero-art">
-            <div className="sun" />
-            <div className="hero-sticker">
+          <div className="hero-visual" aria-label="Café y pastelería">
+            <div className="hero-photo-shape">
+              <div className="photo-orbit orbit-one" />
+              <div className="photo-orbit orbit-two" />
+              <div className="hero-food">☕</div>
+              <div className="hero-pastry">🥐</div>
+              <div className="photo-label">
+                BAKED
+                <br />
+                WITH LOVE
+              </div>
+            </div>
+
+            <div className="vertical-label">
+              COFFEE FLOWER · EST. WITH LOVE
+            </div>
+
+            <div className="hero-stamp">
               FRESH
               <br />
-              DAILY ✿
-            </div>
-            <div className="cup">☕</div>
-            <div className="hero-caption">
-              Tu pausa favorita
+              <b>DAILY</b>
               <br />
-              <b>comienza aquí.</b>
+              ✿
             </div>
+          </div>
+
+          <div className="hero-number">
+            CF<span>—</span>01
           </div>
         </section>
 
+        <section className="marquee" aria-label="Especialidades">
+          <span>CAFÉ DE ESPECIALIDAD</span>
+          <i>✳</i>
+          <span>PASTELERÍA ARTESANAL</span>
+          <i>✳</i>
+          <span>HECHO CON CARIÑO</span>
+          <i>✳</i>
+          <span>CAFÉ DE ESPECIALIDAD</span>
+        </section>
+
         <section className="menu-section" id="menu">
-          <div className="section-head">
+          <div className="menu-intro">
             <div>
-              <span className="eyebrow">NUESTROS FAVORITOS</span>
-              <h2>Algo rico te espera</h2>
+              <span className="eyebrow">
+                <span className="eyebrow-line" />
+                HECHO PARA DISFRUTAR
+              </span>
+              <h2>
+                Pequeñas cosas.
+                <br />
+                <em>Grandes antojos.</em>
+              </h2>
             </div>
+
             <p>
-              Sabores que alegran el día,
-              <br />
-              una taza y un bocado a la vez.
+              Tu próximo favorito está aquí. Elige algo rico
+              y convierte cualquier momento en una ocasión
+              especial.
             </p>
           </div>
 
-          <div className="filters">
-            {["Todos", "Café", "Pastelería"].map((item) => (
-              <button
-                key={item}
-                className={category === item ? "filter active" : "filter"}
-                onClick={() => setCategory(item)}
-              >
-                {item}
-              </button>
-            ))}
+          <div className="menu-toolbar">
+            <div className="menu-tabs">
+              {["Todos", "Café", "Pastelería"].map((item) => (
+                <button
+                  key={item}
+                  className={
+                    category === item ? "filter active" : "filter"
+                  }
+                  onClick={() => setCategory(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            <span className="catalog-count">
+              {loading
+                ? "ACTUALIZANDO CARTA…"
+                : `${filtered.length.toString().padStart(2, "0")} DELICIAS EN LA CARTA`}
+            </span>
           </div>
 
-          {loading && (
-            <p className="muted">Consultando el catálogo de Coffee Flower…</p>
+          {!API_URL && (
+            <p className="demo-note">
+              Carta de muestra · los productos reales aparecerán
+              al conectar el backend.
+            </p>
           )}
 
           <div className="products">
-            {filtered.map((p, index) => (
-              <article className="product" key={p.id}>
+            {filtered.map((product, index) => (
+              <article
+                className={`product product-${index % 3}`}
+                key={product.id}
+              >
                 <div className={`product-art art-${index % 4}`}>
-                  <span>{p.emoji}</span>
-                  <small>{p.categoria}</small>
+                  <span className="product-index">
+                    0{index + 1}
+                  </span>
+                  <span className="product-emoji">
+                    {product.emoji}
+                  </span>
+                  <span className="product-category">
+                    {product.categoria}
+                  </span>
+                  <button
+                    className="add"
+                    onClick={() => add(product.id)}
+                    aria-label={`Agregar ${product.nombre}`}
+                  >
+                    +
+                  </button>
                 </div>
 
                 <div className="product-info">
                   <div>
-                    <h3>{p.nombre}</h3>
-                    <p>{p.descripcion}</p>
+                    <h3>{product.nombre}</h3>
+                    <p>{product.descripcion}</p>
                   </div>
-
-                  <div className="product-bottom">
-                    <strong>{money(p.precio)}</strong>
-                    <button
-                      className="add"
-                      onClick={() => add(p.id)}
-                      aria-label={`Agregar ${p.nombre}`}
-                    >
-                      +
-                    </button>
-                  </div>
+                  <strong>{money(product.precio)}</strong>
                 </div>
               </article>
             ))}
@@ -429,52 +562,84 @@ export default function App() {
         </section>
 
         <section className="story" id="nosotros">
-          <div className="story-mark">✿</div>
-          <div>
-            <span className="eyebrow">NUESTRA ESENCIA</span>
-            <h2>
-              Un rincón cálido
+          <div className="story-art">
+            <span>✿</span>
+            <b>
+              UN RINCÓN
               <br />
-              <em>en medio de tu día.</em>
-            </h2>
-            <p>
-              En Coffee Flower creemos que un buen café puede convertir un
-              momento cotidiano en uno especial. Preparamos cada taza y cada
-              dulce pensando en ti.
-            </p>
+              PARA TI
+            </b>
+            <i>CF.</i>
           </div>
-          <div className="story-stat">
-            <strong>100%</strong>
-            <span>
-              amor por el café
-              <br />y los detalles
+
+          <div className="story-copy">
+            <span className="eyebrow">
+              <span className="eyebrow-line" />
+              DETRÁS DE CADA DETALLE
             </span>
+
+            <h2>
+              No es solo café.
+              <br />
+              <em>Es sentirte en casa.</em>
+            </h2>
+
+            <p>
+              En Coffee Flower creemos en las pausas bonitas:
+              una taza recién preparada, algo dulce para
+              compartir y la alegría de regalarte un momento
+              solo para ti.
+            </p>
+
+            <a href="#menu" className="text-link">
+              Descubre nuestros favoritos <span>↗</span>
+            </a>
+          </div>
+
+          <div className="story-quote">
+            “<span>Los días saben mejor</span>
+            <br />
+            con algo dulce.”
           </div>
         </section>
 
         <section className="checkout" id="pedido">
-          <div>
-            <span className="eyebrow">TU SELECCIÓN</span>
-            <h2>Tu pausa, a tu manera.</h2>
+          <div className="checkout-heading">
+            <span className="eyebrow">
+              <span className="eyebrow-line" />
+              TU SELECCIÓN
+            </span>
+
+            <h2>
+              La parte más
+              <br />
+              <em>deliciosa del día.</em>
+            </h2>
+
             <p>
               {cartCount
                 ? `${cartCount} producto(s) en tu carrito`
-                : "Agrega tus favoritos del menú para comenzar."}
+                : "Agrega tus favoritos y prepara tu próximo antojo."}
             </p>
 
             {cartCount > 0 && (
               <div className="cart-items">
                 {products
-                  .filter((p) => cart[String(p.id)])
-                  .map((p) => (
-                    <div key={p.id} className="cart-item">
+                  .filter((product) => cart[String(product.id)])
+                  .map((product) => (
+                    <div
+                      key={product.id}
+                      className="cart-item"
+                    >
                       <span>
-                        {p.emoji} {p.nombre} × {cart[String(p.id)]}
+                        {product.emoji} {product.nombre} ×{" "}
+                        {cart[String(product.id)]}
                       </span>
+
                       <button
-                        className="button button-outline"
-                        onClick={() => remove(p.id)}
-                        aria-label={`Quitar una unidad de ${p.nombre}`}
+                        className="remove-item"
+                        onClick={() => remove(product.id)}
+                        aria-label={`Quitar una unidad de ${product.nombre}`}
                       >
                         −
                       </button>
@@ -484,31 +649,42 @@ export default function App() {
             )}
           </div>
 
-          <div className="checkout-total">
-            <span>Total estimado</span>
-            <strong>{money(total)}</strong>
+          <div className="checkout-card">
+            <span className="checkout-label">
+              RESUMEN DE TU PEDIDO
+            </span>
+
+            <div className="checkout-row">
+              <span>Productos</span>
+              <strong>{cartCount}</strong>
+            </div>
+
+            <div className="checkout-row checkout-total">
+              <span>Total estimado</span>
+              <strong>{money(total)}</strong>
+            </div>
+
             <button
-              className="button button-dark"
+              className="button button-dark checkout-button"
               onClick={() => void checkout()}
             >
-              Continuar pedido ↗
+              Continuar pedido <span>↗</span>
             </button>
+
+            <small>Un pequeño gusto, una gran sonrisa.</small>
           </div>
         </section>
 
-        {auth.error && (
-          <div className="notice" role="alert">
-            <span>
-              No se pudo verificar la sesión. Intenta iniciar sesión
-              nuevamente.
-            </span>
-          </div>
-        )}
-
-        {message && (
+        {(auth.error || message) && (
           <div className="notice" role="status">
-            <span>{message}</span>
-            <button onClick={() => setMessage("")} aria-label="Cerrar mensaje">
+            <span>
+              {message ||
+                "No se pudo verificar la sesión. Intenta iniciar sesión nuevamente."}
+            </span>
+            <button
+              onClick={() => setMessage("")}
+              aria-label="Cerrar mensaje"
+            >
               ×
             </button>
           </div>
@@ -518,13 +694,14 @@ export default function App() {
       <footer>
         <a className="brand footer-brand" href="#inicio">
           <span className="brand-icon">✿</span>
-          <span>
-            Coffee <i>Flower</i>
-            <small>CAFÉ · PASTELERÍA</small>
+          <span className="brand-name">
+            coffee flower
+            <small>PASTRY · COFFEE HOUSE</small>
           </span>
         </a>
+
         <span>Una pausa bonita, todos los días.</span>
-        <span>© {new Date().getFullYear()} Coffee Flower 360</span>
+        <span>© {new Date().getFullYear()} Coffee Flower</span>
       </footer>
     </div>
   );
