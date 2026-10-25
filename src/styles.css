@@ -1,20 +1,28 @@
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
 
+/* =========================================
+   COFFEE FLOWER — ESTILO ORIGINAL
+   Crema, café, terracota y detalles florales
+   ========================================= */
+
 :root {
-  font-family: 'DM Sans', sans-serif;
-  color: #38232a;
-  background: #fffaf6;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #49352c;
+  background: #fffaf7;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --wine: #722f43;
-  --wine-dark: #4b1e2d;
-  --pink: #d8a6a1;
-  --blush: #f3dfda;
-  --cream: #fffaf6;
-  --ink: #38232a;
-  --muted: #8c7375;
-  --line: #ead9d5;
+
+  --wine: #a0522d;
+  --wine-dark: #3e2723;
+  --pink: #d9a58b;
+  --blush: #f5e5da;
+  --cream: #fffaf7;
+  --ink: #49352c;
+  --muted: #806c60;
+  --line: #ead8cb;
+  --white: #ffffff;
 }
 
 * {
@@ -28,6 +36,8 @@ html {
 
 body {
   margin: 0;
+  min-width: 320px;
+  background: var(--cream);
 }
 
 button,
@@ -35,87 +45,110 @@ a {
   font: inherit;
 }
 
+button {
+  cursor: pointer;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-button {
-  cursor: pointer;
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #d9a58b;
+  outline-offset: 3px;
 }
 
 .app {
+  width: 100%;
   max-width: 1600px;
-  margin: auto;
+  margin: 0 auto;
   overflow: hidden;
   background: var(--cream);
 }
 
+/* =========================================
+   BARRA SUPERIOR
+   ========================================= */
+
 .announcement {
-  height: 30px;
-  background: var(--wine-dark);
-  color: #f8e8e4;
+  min-height: 32px;
+  padding: 7px 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  font-size: 9px;
-  letter-spacing: 1.8px;
+  background: var(--wine-dark);
+  color: #fff4eb;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1.4px;
 }
 
 .announcement span {
-  color: #d9aaa5;
-  font-size: 13px;
+  color: #e7bda6;
+  font-size: 14px;
 }
 
 .topbar {
-  height: 88px;
-  padding: 0 7%;
+  min-height: 84px;
+  padding: 14px 7%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--cream);
-  border-bottom: 1px solid var(--line);
+  gap: 24px;
   position: relative;
   z-index: 4;
+  background: var(--cream);
+  border-bottom: 1px solid var(--line);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 11px;
+  flex-shrink: 0;
 }
 
 .brand-icon {
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  width: 43px;
-  height: 43px;
   border: 1px solid var(--pink);
   border-radius: 50%;
   color: var(--wine);
-  font-size: 26px;
+  font-size: 25px;
 }
 
 .brand-name {
-  font: 600 21px 'Playfair Display', serif;
-  letter-spacing: -.6px;
+  color: var(--wine-dark);
+  font: 600 22px 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.5px;
   text-transform: lowercase;
 }
 
 .brand-name small {
   display: block;
-  margin-top: 5px;
-  font: 8px 'DM Sans', sans-serif;
-  letter-spacing: 2px;
+  margin-top: 4px;
   color: var(--muted);
+  font: 8px Arial, Helvetica, sans-serif;
+  letter-spacing: 2px;
 }
 
 .topbar nav {
   display: flex;
-  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  color: #6e5548;
   font-size: 12px;
-  color: #6d5056;
+}
+
+.topbar nav a {
+  transition: color 0.2s ease;
 }
 
 .topbar nav a:hover,
@@ -124,85 +157,111 @@ button {
 }
 
 .cart-pill {
+  min-width: 20px;
+  height: 20px;
+  margin-left: 4px;
   display: inline-grid;
   place-items: center;
-  min-width: 19px;
-  height: 19px;
   border-radius: 50%;
   background: var(--blush);
   color: var(--wine);
   font-size: 10px;
-  margin-left: 3px;
 }
 
 .account {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .role {
-  font-size: 11px;
   color: var(--wine);
+  font-size: 11px;
 }
 
 .mobile-toggle {
   display: none;
 }
 
+/* =========================================
+   BOTONES
+   ========================================= */
+
 .button {
+  min-height: 43px;
+  padding: 12px 21px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  border: 0;
-  border-radius: 2px;
-  padding: 14px 20px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .2px;
-  transition: background .2s, transform .2s;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 25px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .button:hover {
   transform: translateY(-2px);
 }
 
-.button-dark {
+.button-dark,
+.button-light {
   background: var(--wine);
-  color: white;
+  color: var(--white);
+  box-shadow: 0 6px 15px rgba(160, 82, 45, 0.12);
 }
 
-.button-dark:hover {
-  background: var(--wine-dark);
+.button-dark:hover,
+.button-light:hover {
+  background: #7b3f22;
 }
 
 .button-outline {
-  border: 1px solid #d8b8b5;
+  border-color: #c99b81;
   background: transparent;
-  color: var(--wine);
+  color: var(--wine-dark);
 }
 
-/* PORTADA */
+.button-outline:hover {
+  background: var(--blush);
+}
+
+/* =========================================
+   PORTADA PRINCIPAL
+   ========================================= */
 
 .hero {
-  min-height: 600px;
+  min-height: 570px;
+  padding: 65px 9%;
   position: relative;
   display: grid;
-  grid-template-columns: 1.03fr .97fr;
+  grid-template-columns: 1.05fr 0.95fr;
   align-items: center;
-  padding: 68px 10% 72px;
   gap: 5%;
-  background: #f2dfdb;
+  background:
+    radial-gradient(
+      circle at 82% 22%,
+      rgba(217, 165, 139, 0.22),
+      transparent 32%
+    ),
+    linear-gradient(135deg, #fffaf7 0%, #f3e2d6 100%);
 }
 
-.hero:before {
+.hero::before {
   content: "";
   position: absolute;
-  left: 0;
   top: 0;
   bottom: 0;
-  width: 8px;
+  left: 0;
+  width: 7px;
   background: var(--wine);
 }
 
@@ -216,16 +275,16 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  font-size: 9px;
-  letter-spacing: 2px;
-  font-weight: 700;
   color: var(--wine);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
 }
 
 .eyebrow-line {
-  display: inline-block;
-  width: 24px;
+  width: 26px;
   height: 1px;
+  display: inline-block;
   background: var(--wine);
 }
 
@@ -233,58 +292,51 @@ button {
 .menu-intro h2,
 .story h2,
 .checkout h2 {
-  font: 500 clamp(48px, 6vw, 79px)/1.04 'Playfair Display', serif;
-  letter-spacing: -2.5px;
-  margin: 27px 0 22px;
+  margin: 22px 0;
   color: var(--wine-dark);
+  font: 500 clamp(42px, 5.5vw, 72px)/1.08 'Playfair Display', Georgia, serif;
+  letter-spacing: -1.8px;
 }
 
 .hero h1 em,
 .menu-intro h2 em,
 .story h2 em,
 .checkout h2 em {
+  color: var(--wine);
   font-weight: 500;
-  color: #b16d79;
 }
 
 .hero-copy > p,
 .story-copy > p {
-  max-width: 390px;
-  font-size: 13px;
-  line-height: 2;
-  color: #765e62;
+  max-width: 430px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.9;
 }
 
 .hero-actions {
+  margin-top: 28px;
   display: flex;
   align-items: center;
-  gap: 22px;
-  margin-top: 30px;
-}
-
-.button-light {
-  background: var(--wine);
-  color: white;
-}
-
-.button-light:hover {
-  background: var(--wine-dark);
+  flex-wrap: wrap;
+  gap: 13px;
 }
 
 .hero-aside {
-  font-size: 9px;
+  color: #8b614c;
+  font-size: 10px;
   line-height: 1.8;
-  color: #8c6d72;
 }
 
 .hero-bottom-note {
+  margin-top: 40px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
-  margin-top: 58px;
-  font-size: 8px;
-  letter-spacing: 1.7px;
-  color: #9a777c;
+  color: #8b614c;
+  font-size: 9px;
+  letter-spacing: 1.4px;
 }
 
 .hero-bottom-note > span:first-child {
@@ -293,102 +345,114 @@ button {
 }
 
 .note-rule {
+  width: 40px;
   height: 1px;
-  width: 45px;
-  background: #cba4a5;
+  background: #c99b81;
 }
 
+/* =========================================
+   ILUSTRACIÓN DE CAFÉ
+   ========================================= */
+
 .hero-visual {
-  height: 440px;
+  min-width: 0;
+  height: 430px;
   position: relative;
   display: grid;
   place-items: center;
 }
 
 .hero-photo-shape {
-  height: 390px;
-  width: min(100%, 390px);
+  width: min(100%, 380px);
+  height: 370px;
   position: relative;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, #b87980, #8b4659 60%, #622d40);
-  border-radius: 48% 48% 4px 4px;
   overflow: hidden;
-  box-shadow: 18px 22px 0 #d9b2ad;
+  border-radius: 48% 48% 10px 10px;
+  background: linear-gradient(
+    145deg,
+    #d9a58b 0%,
+    #a0522d 62%,
+    #603522 100%
+  );
+  box-shadow: 16px 19px 0 #ead1c1;
 }
 
-.hero-photo-shape:before {
+.hero-photo-shape::before {
   content: "";
+  width: 250px;
+  height: 250px;
   position: absolute;
-  width: 260px;
-  height: 260px;
+  top: 38px;
+  left: 50%;
   border-radius: 50%;
-  background: #edcfc7;
-  top: 46px;
-  left: calc(50% - 130px);
+  background: #f3dfd1;
+  transform: translateX(-50%);
 }
 
 .photo-orbit {
+  width: 310px;
+  height: 310px;
   position: absolute;
-  border: 1px solid #f6dfd5;
-  border-radius: 50%;
-  width: 330px;
-  height: 330px;
   z-index: 1;
+  border: 1px solid rgba(255, 240, 229, 0.8);
+  border-radius: 50%;
 }
 
 .orbit-two {
-  width: 280px;
-  height: 280px;
+  width: 260px;
+  height: 260px;
 }
 
 .hero-food {
   position: relative;
   z-index: 2;
-  font-size: 142px;
-  filter: drop-shadow(0 17px 10px #32121f55);
-  transform: rotate(-9deg);
+  font-size: clamp(100px, 12vw, 140px);
+  filter: drop-shadow(0 17px 10px rgba(50, 33, 22, 0.3));
+  transform: rotate(-8deg);
 }
 
 .hero-pastry {
   position: absolute;
   z-index: 3;
-  bottom: 55px;
-  right: 30px;
-  font-size: 70px;
-  transform: rotate(12deg);
-  filter: drop-shadow(0 8px 5px #32121f33);
+  right: 25px;
+  bottom: 48px;
+  font-size: 65px;
+  filter: drop-shadow(0 8px 5px rgba(50, 33, 22, 0.2));
+  transform: rotate(10deg);
 }
 
 .photo-label {
   position: absolute;
   z-index: 2;
+  bottom: 25px;
   left: 20px;
-  bottom: 30px;
-  color: #fff2ed;
+  color: #fff4eb;
   font-size: 9px;
   line-height: 1.7;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
 }
 
 .hero-stamp {
+  width: 82px;
+  height: 82px;
   position: absolute;
   z-index: 3;
-  right: -12px;
-  top: 15px;
-  width: 83px;
-  height: 83px;
+  top: 8px;
+  right: -5px;
   display: grid;
-  place-content: center;
-  text-align: center;
+  align-content: center;
+  justify-content: center;
+  border: 1px solid var(--wine);
   border-radius: 50%;
   background: var(--cream);
-  border: 1px solid var(--wine);
   color: var(--wine);
+  text-align: center;
   font-size: 9px;
   line-height: 1.5;
-  letter-spacing: 1px;
-  transform: rotate(10deg);
+  letter-spacing: 0.7px;
+  transform: rotate(8deg);
 }
 
 .hero-stamp b {
@@ -397,20 +461,20 @@ button {
 
 .vertical-label {
   position: absolute;
-  right: -25px;
+  right: -20px;
   bottom: 20px;
+  color: var(--wine);
   writing-mode: vertical-rl;
   font-size: 8px;
-  letter-spacing: 2px;
-  color: var(--wine);
+  letter-spacing: 1.7px;
 }
 
 .hero-number {
   position: absolute;
-  bottom: 25px;
   right: 5%;
-  font: 14px 'Playfair Display', serif;
-  color: #a9767b;
+  bottom: 18px;
+  color: #8b614c;
+  font: 14px 'Playfair Display', Georgia, serif;
 }
 
 .hero-number span {
@@ -418,164 +482,191 @@ button {
   color: var(--wine);
 }
 
-/* FRANJA DE ESPECIALIDADES */
+/* =========================================
+   FRANJA DE ESPECIALIDADES
+   ========================================= */
 
 .marquee {
-  height: 58px;
+  min-height: 55px;
+  padding: 14px 22px;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  gap: 18px;
-  background: var(--wine);
-  color: #fff1eb;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  gap: 15px;
   overflow: hidden;
-  font-size: 9px;
-  letter-spacing: 2px;
+  background: var(--wine-dark);
+  color: #fff4eb;
+  font-size: 10px;
+  letter-spacing: 1.7px;
 }
 
 .marquee i {
-  color: #e6b8b0;
+  color: #e7bda6;
   font-size: 16px;
   font-style: normal;
 }
 
-/* CATÁLOGO */
+/* =========================================
+   CATÁLOGO DE PRODUCTOS
+   ========================================= */
 
 .menu-section {
-  padding: 105px 10% 110px;
-  background: #fffaf6;
+  padding: 85px 9% 95px;
+  background: #fffdfb;
 }
 
 .menu-intro {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: end;
-  gap: 35px;
+  gap: 30px;
 }
 
 .menu-intro h2,
 .story h2,
 .checkout h2 {
-  font-size: clamp(37px, 4.3vw, 55px);
-  margin: 18px 0 0;
-  letter-spacing: -1.5px;
+  margin: 16px 0 0;
+  font-size: clamp(35px, 4.3vw, 53px);
+  letter-spacing: -1.2px;
 }
 
 .menu-intro > p {
-  max-width: 300px;
-  font-size: 12px;
-  line-height: 1.9;
-  color: var(--muted);
+  max-width: 320px;
   margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 .menu-toolbar {
+  margin: 35px 0 20px;
+  padding-bottom: 15px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin: 42px 0 20px;
-  padding-bottom: 16px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
   border-bottom: 1px solid var(--line);
 }
 
 .menu-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .filter {
   padding: 9px 17px;
   border: 1px solid var(--line);
+  border-radius: 22px;
   background: transparent;
-  border-radius: 2px;
-  color: #8c7375;
-  font-size: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  transition: all 0.2s ease;
+}
+
+.filter:hover {
+  border-color: var(--wine);
+  color: var(--wine);
 }
 
 .filter.active {
-  background: var(--wine);
   border-color: var(--wine);
-  color: white;
+  background: var(--wine);
+  color: var(--white);
 }
 
 .catalog-count {
-  font-size: 8px;
-  letter-spacing: 1.3px;
-  color: #a38b8d;
+  color: #967d6e;
+  font-size: 9px;
+  letter-spacing: 1.2px;
 }
 
 .demo-note {
-  font-size: 10px;
-  color: #a0787e;
   margin: 0 0 15px;
+  color: #96745e;
+  font-size: 11px;
 }
 
 .products {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 25px;
+  gap: 22px;
 }
 
 .product {
   min-width: 0;
-  background: #fff;
-  border: 1px solid #f0e2de;
-  transition: transform .25s, box-shadow .25s;
+  overflow: hidden;
+  border: 1px solid #ead8cb;
+  border-radius: 17px;
+  background: var(--white);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .product:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 35px #58233312;
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(91, 53, 37, 0.1);
 }
 
 .product-art {
-  height: 225px;
+  height: 220px;
   position: relative;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #f1dfda;
+  background: #f3e2d6;
 }
 
 .art-1 {
-  background: #ead9e0;
+  background: #f3e2d6;
 }
 
 .art-2 {
-  background: #efe5d3;
+  background: #eee0c9;
 }
 
 .art-3 {
-  background: #ead5d0;
+  background: #f0dcd4;
 }
 
-.product-art:after {
+.product:nth-child(3n + 2) .product-art {
+  background: #eee0c9;
+}
+
+.product:nth-child(3n) .product-art {
+  background: #f0dcd4;
+}
+
+.product-art::after {
   content: "";
+  width: 175px;
+  height: 175px;
   position: absolute;
-  width: 180px;
-  height: 180px;
-  border: 1px solid #fff8;
+  top: 22px;
+  left: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.65);
   border-radius: 50%;
-  top: 24px;
-  left: calc(50% - 90px);
+  transform: translateX(-50%);
 }
 
 .product-index {
   position: absolute;
-  top: 15px;
-  left: 16px;
+  top: 14px;
+  left: 15px;
+  color: #8b614c;
   font-size: 9px;
   letter-spacing: 1px;
-  color: #956c73;
 }
 
 .product-emoji {
   position: relative;
   z-index: 1;
-  font-size: 82px;
-  filter: drop-shadow(0 10px 7px #50293620);
-  transition: transform .25s;
+  font-size: 80px;
+  filter: drop-shadow(0 10px 7px rgba(80, 41, 25, 0.15));
+  transition: transform 0.25s ease;
 }
 
 .product:hover .product-emoji {
@@ -584,190 +675,205 @@ button {
 
 .product-category {
   position: absolute;
-  bottom: 14px;
+  bottom: 13px;
   left: 15px;
+  color: #79553f;
   font-size: 9px;
-  color: #7b535b;
-  letter-spacing: .5px;
+  letter-spacing: 0.5px;
 }
 
 .add {
+  width: 35px;
+  height: 35px;
   position: absolute;
-  right: 14px;
-  bottom: 12px;
   z-index: 2;
-  width: 34px;
-  height: 34px;
+  right: 13px;
+  bottom: 11px;
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 50%;
   background: var(--wine);
-  color: #fff;
-  font-size: 22px;
+  color: var(--white);
+  font-size: 23px;
   line-height: 1;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .add:hover {
-  background: var(--wine-dark);
+  background: #7b3f22;
+  transform: scale(1.06);
 }
 
 .product-info {
-  padding: 19px 17px 20px;
+  padding: 18px 16px 20px;
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: start;
   gap: 10px;
 }
 
 .product-info h3 {
-  font: 600 16px 'Playfair Display', serif;
   margin: 0 0 7px;
   color: var(--wine-dark);
+  font: 600 16px 'Playfair Display', Georgia, serif;
 }
 
 .product-info p {
-  font-size: 10px;
-  line-height: 1.7;
-  color: #967d80;
-  margin: 0;
   max-width: 220px;
+  margin: 0;
+  color: #897467;
+  font-size: 11px;
+  line-height: 1.7;
 }
 
 .product-info > strong {
+  color: var(--wine);
   white-space: nowrap;
   font-size: 12px;
-  color: var(--wine);
 }
 
-/* NUESTRA HISTORIA */
+/* =========================================
+   NUESTRA HISTORIA
+   ========================================= */
 
 .story {
+  padding: 80px 9%;
   display: grid;
-  grid-template-columns: .8fr 1.2fr .6fr;
+  grid-template-columns: 0.8fr 1.2fr 0.6fr;
   align-items: center;
-  gap: 6%;
-  padding: 95px 10%;
-  background: #f1e1dc;
+  gap: 5%;
+  background: #f3e2d6;
 }
 
 .story-art {
-  height: 270px;
+  min-height: 250px;
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  background: var(--wine);
-  color: #f7e5df;
+  justify-content: center;
   overflow: hidden;
+  background: var(--wine-dark);
+  color: #fff4eb;
 }
 
-.story-art:before,
-.story-art:after {
+.story-art::before,
+.story-art::after {
   content: "";
+  width: 205px;
+  height: 205px;
   position: absolute;
-  width: 210px;
-  height: 210px;
-  border: 1px solid #e4b9b4;
+  border: 1px solid rgba(231, 189, 166, 0.65);
   border-radius: 50%;
 }
 
-.story-art:after {
-  width: 170px;
-  height: 170px;
+.story-art::after {
+  width: 165px;
+  height: 165px;
 }
 
 .story-art span {
+  position: relative;
   z-index: 1;
   font-size: 48px;
 }
 
 .story-art b {
+  position: relative;
   z-index: 1;
   text-align: center;
   font-size: 9px;
-  line-height: 1.7;
-  letter-spacing: 2px;
+  line-height: 1.8;
+  letter-spacing: 1.7px;
   font-weight: 500;
 }
 
 .story-art i {
   position: absolute;
-  bottom: 13px;
-  right: 15px;
-  font: italic 18px 'Playfair Display', serif;
-  color: #e7b8b1;
+  right: 14px;
+  bottom: 12px;
+  color: #e7bda6;
+  font: italic 18px 'Playfair Display', Georgia, serif;
 }
 
 .story h2 {
-  font-size: clamp(32px, 3.5vw, 46px);
+  font-size: clamp(32px, 3.5vw, 45px);
 }
 
 .story-copy > p {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .text-link {
+  margin-top: 15px;
   display: inline-flex;
-  gap: 15px;
   align-items: center;
-  margin-top: 17px;
+  gap: 13px;
   color: var(--wine);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .story-quote {
-  font: italic 25px/1.5 'Playfair Display', serif;
-  color: #a56b76;
-  border-left: 1px solid #d3a8a5;
-  padding-left: 22px;
+  padding-left: 20px;
+  border-left: 1px solid #c99b81;
+  color: var(--wine);
+  font: italic 23px/1.5 'Playfair Display', Georgia, serif;
 }
 
 .story-quote span {
   color: var(--wine-dark);
 }
 
-/* CARRITO Y PEDIDO */
+/* =========================================
+   CARRITO Y PEDIDO
+   ========================================= */
 
 .checkout {
+  padding: 85px 9%;
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 50px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   align-items: center;
-  padding: 95px 10%;
-  background: #fffaf6;
+  gap: 45px;
+  background: var(--cream);
 }
 
 .checkout-heading h2 {
-  font-size: 45px;
+  font-size: clamp(35px, 4vw, 48px);
 }
 
 .checkout-heading > p {
-  font-size: 11px;
-  color: var(--muted);
   margin-top: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
 }
 
 .checkout-card {
-  padding: 28px;
-  background: #f3e4df;
+  padding: 26px;
   border-top: 4px solid var(--wine);
+  border-radius: 0 0 14px 14px;
+  background: #f5e8df;
 }
 
 .checkout-label {
-  font-size: 8px;
-  letter-spacing: 1.8px;
-  color: #956d75;
+  color: #8b614c;
+  font-size: 9px;
+  letter-spacing: 1.5px;
 }
 
 .checkout-row {
+  padding: 16px 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
-  border-bottom: 1px solid #e0c8c4;
-  font-size: 11px;
-  color: #8c6c72;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #e5cbb9;
+  color: #806c60;
+  font-size: 12px;
 }
 
 .checkout-row strong {
@@ -775,21 +881,21 @@ button {
 }
 
 .checkout-total strong {
-  font: 25px 'Playfair Display', serif;
+  font: 25px 'Playfair Display', Georgia, serif;
 }
 
 .checkout-button {
   width: 100%;
-  margin-top: 22px;
+  margin-top: 20px;
   justify-content: space-between;
 }
 
 .checkout-card > small {
   display: block;
+  margin-top: 14px;
+  color: #8b7466;
   text-align: center;
-  font-size: 9px;
-  color: #9d7e82;
-  margin-top: 15px;
+  font-size: 10px;
 }
 
 .cart-items {
@@ -798,102 +904,120 @@ button {
 }
 
 .cart-item {
+  padding: 11px 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  justify-content: space-between;
+  gap: 15px;
   border-bottom: 1px solid var(--line);
-  font-size: 11px;
-  color: #77565d;
+  color: #775b4c;
+  font-size: 12px;
 }
 
 .remove-item {
-  border: 1px solid #d6b6b3;
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+  border: 1px solid #d9b8a4;
+  border-radius: 50%;
   background: transparent;
   color: var(--wine);
-  width: 27px;
-  height: 27px;
 }
 
-/* MENSAJES Y PIE DE PÁGINA */
+.remove-item:hover {
+  background: var(--blush);
+}
+
+/* =========================================
+   AVISOS Y TEXTOS SECUNDARIOS
+   ========================================= */
 
 .notice {
+  max-width: min(600px, 90vw);
+  padding: 14px 18px;
   position: fixed;
+  z-index: 10;
   bottom: 22px;
   left: 50%;
-  transform: translateX(-50%);
-  max-width: min(600px, 90vw);
   display: flex;
-  gap: 18px;
   align-items: center;
-  padding: 14px 18px;
+  gap: 18px;
+  border-radius: 12px;
   background: var(--wine-dark);
-  color: white;
-  box-shadow: 0 10px 30px #0002;
-  border-radius: 3px;
+  color: var(--white);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   font-size: 12px;
-  z-index: 10;
+  transform: translateX(-50%);
 }
 
 .notice button {
   border: 0;
   background: transparent;
-  color: white;
+  color: var(--white);
   font-size: 20px;
 }
 
 .muted {
-  font-size: 12px;
-  color: #817165;
   margin-bottom: 15px;
+  color: #817165;
+  font-size: 12px;
 }
 
+/* =========================================
+   PIE DE PÁGINA
+   ========================================= */
+
 footer {
+  padding: 28px 7%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 20px;
-  padding: 30px 7%;
   background: var(--wine-dark);
-  color: #ecd9d5;
-  font-size: 9px;
+  color: #fff4eb;
+  font-size: 10px;
 }
 
 footer .brand-name {
-  color: white;
+  color: var(--white);
   font-size: 18px;
 }
 
 footer .brand-icon {
   width: 36px;
   height: 36px;
-  color: #edc4be;
-  border-color: #b57b83;
+  border-color: #b98b72;
+  color: #e7bda6;
   font-size: 21px;
 }
 
 footer .brand-name small {
+  color: #e0c0ae;
   font-size: 7px;
-  color: #cba6a6;
 }
 
 .footer-brand {
-  color: white;
+  color: var(--white);
 }
 
-/* TABLETS */
+/* =========================================
+   TABLETS
+   ========================================= */
 
 @media (max-width: 1000px) {
   .topbar {
-    padding: 0 5%;
+    padding-right: 5%;
+    padding-left: 5%;
   }
 
   .topbar nav {
-    gap: 17px;
+    gap: 14px;
   }
 
   .hero {
-    padding: 60px 7%;
+    padding-right: 7%;
+    padding-left: 7%;
     gap: 4%;
   }
 
@@ -902,8 +1026,8 @@ footer .brand-name small {
   }
 
   .hero-photo-shape {
+    width: min(100%, 330px);
     height: 340px;
-    width: 330px;
   }
 
   .hero-food {
@@ -911,12 +1035,14 @@ footer .brand-name small {
   }
 
   .menu-section {
-    padding: 80px 7%;
+    padding-right: 7%;
+    padding-left: 7%;
   }
 
   .story {
-    padding: 75px 7%;
-    grid-template-columns: .7fr 1.3fr;
+    padding-right: 7%;
+    padding-left: 7%;
+    grid-template-columns: 0.8fr 1.2fr;
   }
 
   .story-quote {
@@ -924,24 +1050,31 @@ footer .brand-name small {
   }
 
   .checkout {
-    padding: 75px 7%;
+    padding-right: 7%;
+    padding-left: 7%;
+    gap: 28px;
+  }
+
+  .products {
+    gap: 15px;
   }
 }
 
-/* CELULARES */
+/* =========================================
+   CELULARES
+   ========================================= */
 
 @media (max-width: 700px) {
   .announcement {
-    font-size: 7px;
-    letter-spacing: 1px;
     gap: 7px;
+    font-size: 8px;
+    letter-spacing: 0.7px;
   }
 
   .topbar {
-    height: auto;
     min-height: 75px;
+    padding: 13px 5%;
     flex-wrap: wrap;
-    padding: 14px 5%;
     gap: 12px;
   }
 
@@ -950,22 +1083,25 @@ footer .brand-name small {
   }
 
   .mobile-toggle {
-    display: block;
     margin-left: auto;
-    background: transparent;
+    display: block;
+    padding: 8px 11px;
     border: 1px solid var(--line);
+    border-radius: 8px;
+    background: transparent;
     color: var(--wine);
-    padding: 7px 10px;
   }
 
   .topbar nav {
-    display: none;
-    order: 4;
     width: 100%;
+    order: 4;
+    display: none;
+    align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    font-size: 11px;
-    padding: 8px 0;
+    flex-wrap: wrap;
+    gap: 13px;
+    padding: 10px 0;
+    font-size: 12px;
   }
 
   .topbar nav.nav-open {
@@ -977,41 +1113,74 @@ footer .brand-name small {
   }
 
   .account .button {
-    padding: 10px 12px;
+    min-height: 37px;
+    padding: 9px 12px;
+    font-size: 10px;
   }
 
   .hero {
-    grid-template-columns: 1fr;
     padding: 45px 7% 55px;
-    gap: 28px;
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
 
   .hero h1 {
-    font-size: 55px;
+    font-size: clamp(43px, 10vw, 56px);
+    letter-spacing: -1.3px;
+  }
+
+  .hero-copy > p {
+    font-size: 13px;
+  }
+
+  .hero-actions {
+    gap: 10px;
+  }
+
+  .hero-bottom-note {
+    margin-top: 28px;
   }
 
   .hero-visual {
-    height: 340px;
+    height: 330px;
   }
 
   .hero-photo-shape {
-    height: 310px;
-    width: min(85%, 320px);
+    width: min(85%, 315px);
+    height: 300px;
+  }
+
+  .hero-photo-shape::before {
+    width: 210px;
+    height: 210px;
+  }
+
+  .photo-orbit {
+    width: 260px;
+    height: 260px;
+  }
+
+  .orbit-two {
+    width: 220px;
+    height: 220px;
   }
 
   .hero-food {
-    font-size: 110px;
+    font-size: 108px;
   }
 
   .hero-pastry {
-    font-size: 54px;
+    right: 18px;
+    bottom: 43px;
+    font-size: 53px;
   }
 
   .hero-stamp {
-    right: 0;
     top: 0;
-    width: 72px;
-    height: 72px;
+    right: 0;
+    width: 70px;
+    height: 70px;
+    font-size: 8px;
   }
 
   .vertical-label {
@@ -1020,26 +1189,19 @@ footer .brand-name small {
 
   .hero-number {
     right: 7%;
-    bottom: 15px;
-  }
-
-  .hero-bottom-note {
-    margin-top: 35px;
-  }
-
-  .hero-aside {
-    font-size: 8px;
+    bottom: 10px;
   }
 
   .marquee {
     justify-content: flex-start;
-    padding: 0 20px;
+    flex-wrap: nowrap;
     gap: 15px;
+    padding: 15px 20px;
     font-size: 8px;
   }
 
   .menu-section {
-    padding: 65px 6%;
+    padding: 60px 6%;
   }
 
   .menu-intro {
@@ -1047,18 +1209,27 @@ footer .brand-name small {
   }
 
   .menu-intro h2 {
-    font-size: 43px;
+    font-size: 40px;
   }
 
   .menu-intro > p {
-    margin-top: 18px;
+    margin-top: 15px;
   }
 
   .menu-toolbar {
-    align-items: start;
-    gap: 12px;
+    margin-top: 25px;
+    align-items: flex-start;
     flex-direction: column;
-    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .menu-tabs {
+    gap: 6px;
+  }
+
+  .filter {
+    padding: 8px 12px;
+    font-size: 10px;
   }
 
   .products {
@@ -1070,15 +1241,14 @@ footer .brand-name small {
     height: 150px;
   }
 
-  .product-emoji {
-    font-size: 60px;
+  .product-art::after {
+    width: 120px;
+    height: 120px;
+    top: 14px;
   }
 
-  .product-art:after {
-    width: 125px;
-    height: 125px;
-    top: 13px;
-    left: calc(50% - 62px);
+  .product-emoji {
+    font-size: 59px;
   }
 
   .product-info {
@@ -1091,13 +1261,13 @@ footer .brand-name small {
   }
 
   .product-info p {
-    font-size: 9px;
-    min-height: 45px;
+    min-height: 42px;
+    font-size: 10px;
   }
 
   .product-info > strong {
     display: block;
-    margin-top: 12px;
+    margin-top: 11px;
   }
 
   .add {
@@ -1106,18 +1276,19 @@ footer .brand-name small {
   }
 
   .story {
+    padding: 55px 7%;
     grid-template-columns: 1fr;
-    gap: 25px;
-    padding: 60px 7%;
+    gap: 23px;
   }
 
   .story-art {
-    height: 220px;
+    width: 100%;
     max-width: 300px;
+    min-height: 220px;
   }
 
   .story h2 {
-    font-size: 38px;
+    font-size: 37px;
   }
 
   .story-quote {
@@ -1126,23 +1297,22 @@ footer .brand-name small {
   }
 
   .checkout {
+    padding: 60px 7%;
     grid-template-columns: 1fr;
     gap: 25px;
-    padding: 65px 7%;
   }
 
   .checkout-heading h2 {
-    font-size: 40px;
+    font-size: 39px;
   }
 
   .checkout-card {
-    padding: 23px;
+    padding: 22px;
   }
 
   footer {
-    flex-wrap: wrap;
     padding: 25px 6%;
-    gap: 16px;
+    gap: 15px;
   }
 
   footer > span {
@@ -1150,11 +1320,71 @@ footer .brand-name small {
   }
 }
 
+/* =========================================
+   PANTALLAS MUY PEQUEÑAS
+   ========================================= */
+
+@media (max-width: 380px) {
+  .brand {
+    gap: 7px;
+  }
+
+  .brand-icon {
+    width: 37px;
+    height: 37px;
+    font-size: 21px;
+  }
+
+  .brand-name {
+    font-size: 17px;
+  }
+
+  .account {
+    gap: 5px;
+  }
+
+  .account .button {
+    padding: 8px;
+  }
+
+  .hero h1 {
+    font-size: 41px;
+  }
+
+  .hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-actions .button {
+    width: 100%;
+  }
+
+  .products {
+    gap: 9px;
+  }
+
+  .product-info {
+    padding: 10px;
+  }
+
+  .product-info h3 {
+    font-size: 13px;
+  }
+
+  .product-info p {
+    font-size: 9px;
+  }
+}
+
+/* Respeta la preferencia de movimiento reducido */
 @media (prefers-reduced-motion: reduce) {
   *,
-  *:before,
-  *:after {
+  *::before,
+  *::after {
     scroll-behavior: auto !important;
-    transition: none !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
