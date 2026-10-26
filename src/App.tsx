@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 
@@ -59,8 +60,6 @@ function obtenerCategoria(product: Product): string {
     return "Café";
   }
 
-  // Para productos nuevos que no coincidan con los nombres anteriores,
-  // respetamos la categoría de la API si existe; si no, usamos Café.
   return product.categoria?.trim() || "Café";
 }
 
@@ -79,6 +78,7 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [sendingOrder, setSendingOrder] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const groups =
     (auth.user?.profile?.["cognito:groups"] as string[] | undefined) ?? [];
@@ -96,6 +96,7 @@ export default function App() {
 
   const authHeaders = useCallback((): HeadersInit => {
     const token = auth.user?.access_token;
+
     return {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -114,16 +115,20 @@ export default function App() {
 
     async function cargarProductos() {
       setLoading(true);
+
       try {
         const response = await fetch(`${API_URL}/api/productos`);
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
 
         const data: Product[] = await response.json();
+
         if (!cancelled && Array.isArray(data) && data.length > 0) {
           const productosPreparados = data.map((product) => {
             const categoria = obtenerCategoria(product);
+
             return {
               ...product,
               categoria,
@@ -151,6 +156,7 @@ export default function App() {
     }
 
     void cargarProductos();
+
     return () => {
       cancelled = true;
     };
@@ -167,25 +173,32 @@ export default function App() {
     0
   );
 
-  const money = (amount: number) =>
-    amount.toLocaleString("es-CL", {
-      style: "currency",
-      currency: "CLP",
-      maximumFractionDigits: 0,
-    });
-
   const login = () => {
-    void auth.signinRedirect({ redirect_uri: REDIRECT_URI }).catch(() => {
+    setMessage("");
+
+    void auth.signinRedirect({
+      redirect_uri: REDIRECT_URI,
+    }).catch((error) => {
+      console.error("Error al iniciar sesión:", error);
       setMessage("No se pudo iniciar sesión. Revisa la configuración de Cognito.");
     });
   };
 
+  // Cierre de sesión mediante el proveedor OIDC/Cognito.
   const logout = async () => {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+    setMessage("");
+
     try {
-      await auth.removeUser();
-      window.location.assign(REDIRECT_URI);
-    } catch {
-      setMessage("No se pudo cerrar la sesión.");
+      await auth.signoutRedirect();
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      setLoggingOut(false);
+      setMessage(
+        "No se pudo cerrar la sesión. Revisa la configuración OIDC y Cognito."
+      );
     }
   };
 
@@ -194,6 +207,7 @@ export default function App() {
       ...previous,
       [String(id)]: (previous[String(id)] ?? 0) + 1,
     }));
+
     setMessage("");
   };
 
@@ -201,8 +215,10 @@ export default function App() {
     setCart((previous) => {
       const next = { ...previous };
       const key = String(id);
+
       if ((next[key] ?? 0) > 1) next[key] -= 1;
       else delete next[key];
+
       return next;
     });
   };
@@ -237,6 +253,8 @@ export default function App() {
     }
 
     setSendingOrder(true);
+    setMessage("");
+
     try {
       const response = await fetch(`${API_URL}/api/pedidos`, {
         method: "POST",
@@ -255,14 +273,18 @@ export default function App() {
         }),
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
       setCart({});
       setMessage("¡Tu pedido se envió correctamente!");
     } catch (error) {
+      console.error("Error al enviar pedido:", error);
       setMessage(
         `No se pudo enviar el pedido: ${
           error instanceof Error ? error.message : "error de red"
-        }. Revisa API Gateway, backend y CORS.`
+        }. Revisa la ruta del backend y API Gateway.`
       );
     } finally {
       setSendingOrder(false);
@@ -295,6 +317,7 @@ export default function App() {
           >
             Inicio
           </a>
+
           <a
             href="#productos"
             aria-current={activePage === "productos" ? "page" : undefined}
@@ -305,6 +328,7 @@ export default function App() {
           >
             Productos
           </a>
+
           <a
             href="#categorias"
             aria-current={activePage === "categorias" ? "page" : undefined}
@@ -315,6 +339,7 @@ export default function App() {
           >
             Categorías
           </a>
+
           <a
             href="#carrito"
             aria-current={activePage === "carrito" ? "page" : undefined}
@@ -333,12 +358,14 @@ export default function App() {
           ) : auth.isAuthenticated ? (
             <>
               <span className="role">{role}</span>
+
               <button
                 type="button"
                 className="button button-outline"
                 onClick={() => void logout()}
+                disabled={loggingOut}
               >
-                Cerrar sesión
+                {loggingOut ? "Cerrando sesión…" : "Cerrar sesión"}
               </button>
             </>
           ) : (
@@ -416,6 +443,7 @@ export default function App() {
           <span className="brand-icon">☕</span>
           <span className="brand-name">Coffee Flower</span>
         </a>
+
         <span>Una pausa bonita, todos los días.</span>
         <span>© {new Date().getFullYear()} Coffee Flower</span>
       </footer>
