@@ -1,4 +1,3 @@
-
 import React from "react";
 
 export type Product = {
@@ -6,8 +5,8 @@ export type Product = {
   nombre: string;
   descripcion: string;
   precio: number;
-  categoria: string;
-  emoji?: string;
+  categoria?: string | null;
+  emoji?: string | null;
 };
 
 type ProductosProps = {
@@ -26,7 +25,7 @@ export default function Productos({
   loading = false,
 }: ProductosProps) {
   const money = (amount: number) =>
-    amount.toLocaleString("es-CL", {
+    Number(amount).toLocaleString("es-CL", {
       style: "currency",
       currency: "CLP",
       maximumFractionDigits: 0,
@@ -34,18 +33,69 @@ export default function Productos({
 
   const categorias = ["Todos", "Café", "Pastelería"];
 
-  const normalizarCategoria = (categoria: string) => {
-    const value = categoria.toLowerCase().trim();
+  const normalizarCategoria = (
+    categoria?: string | null,
+    nombre?: string
+  ): string => {
+    const value = (categoria ?? "").toLowerCase().trim();
+    const productName = (nombre ?? "").toLowerCase().trim();
 
-    if (value.includes("pastel") || value.includes("dulce")) {
+    if (
+      value.includes("pastel") ||
+      value.includes("dulce") ||
+      value.includes("repostería") ||
+      value.includes("reposteria") ||
+      productName.includes("cheesecake") ||
+      productName.includes("torta") ||
+      productName.includes("zanahoria") ||
+      productName.includes("pie de limón") ||
+      productName.includes("brownie") ||
+      productName.includes("muffin") ||
+      productName.includes("croissant") ||
+      productName.includes("roll de canela") ||
+      productName.includes("kuchen")
+    ) {
       return "Pastelería";
     }
 
-    if (value.includes("café") || value.includes("cafe")) {
+    if (
+      value.includes("café") ||
+      value.includes("cafe") ||
+      productName.includes("espresso") ||
+      productName.includes("americano") ||
+      productName.includes("cappuccino") ||
+      productName.includes("latte") ||
+      productName.includes("mocha") ||
+      productName.includes("moka") ||
+      productName.includes("frappé") ||
+      productName.includes("frappe") ||
+      productName.includes("chocolate caliente")
+    ) {
       return "Café";
     }
 
-    return categoria;
+    return "Sin categoría";
+  };
+
+  const obtenerEmoji = (product: Product): string => {
+    if (product.emoji?.trim()) {
+      return product.emoji;
+    }
+
+    const categoria = normalizarCategoria(
+      product.categoria,
+      product.nombre
+    );
+
+    if (categoria === "Café") {
+      return "☕";
+    }
+
+    if (categoria === "Pastelería") {
+      return "🍰";
+    }
+
+    return "🛍️";
   };
 
   const productosFiltrados =
@@ -53,7 +103,10 @@ export default function Productos({
       ? products
       : products.filter(
           (product) =>
-            normalizarCategoria(product.categoria) === category
+            normalizarCategoria(
+              product.categoria,
+              product.nombre
+            ) === category
         );
 
   return (
@@ -103,14 +156,14 @@ export default function Productos({
               <article className="product" key={product.id}>
                 <div className="product-art">
                   <span className="product-emoji" aria-hidden="true">
-                    {product.emoji ??
-                      (normalizarCategoria(product.categoria) === "Café"
-                        ? "☕"
-                        : "🍰")}
+                    {obtenerEmoji(product)}
                   </span>
 
                   <span className="product-category">
-                    {normalizarCategoria(product.categoria)}
+                    {normalizarCategoria(
+                      product.categoria,
+                      product.nombre
+                    )}
                   </span>
 
                   <button
