@@ -1,21 +1,18 @@
-
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 
-type Product = {
-  id: string | number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  categoria: string;
-  emoji?: string;
-};
+import Home from "./pages/Home";
+import Productos, { type Product } from "./pages/Productos";
+import Categorias from "./pages/Categorias";
+import Cart from "./pages/Cart";
 
 const API_URL = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.replace(/\/$/, "") ?? "";
 
 const REDIRECT_URI = "https://coffee-flower-frontend.vercel.app/";
+
+type Page = "inicio" | "productos" | "categorias" | "carrito";
 
 const DEMO_PRODUCTS: Product[] = [
   {
@@ -68,7 +65,7 @@ const DEMO_PRODUCTS: Product[] = [
   },
 ];
 
-function normalizarCategoria(categoria: string) {
+function normalizarCategoria(categoria: string): string {
   const value = categoria.toLowerCase().trim();
 
   if (value.includes("pastel") || value.includes("dulce")) {
@@ -85,11 +82,13 @@ function normalizarCategoria(categoria: string) {
 export default function App() {
   const auth = useAuth();
 
+  const [activePage, setActivePage] = useState<Page>("inicio");
   const [products, setProducts] = useState<Product[]>(DEMO_PRODUCTS);
   const [category, setCategory] = useState("Todos");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sendingOrder, setSendingOrder] = useState(false);
 
   const groups =
     (auth.user?.profile?.["cognito:groups"] as string[] | undefined) ?? [];
@@ -102,14 +101,11 @@ export default function App() {
         : "Cliente";
 
   const email = String(
-    auth.user?.profile?.email ??
-      auth.user?.profile?.username ??
-      ""
+    auth.user?.profile?.email ?? auth.user?.profile?.username ?? ""
   );
 
   const authHeaders = useCallback((): HeadersInit => {
     const token = auth.user?.access_token;
-
     return {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -117,39 +113,43 @@ export default function App() {
   }, [auth.user]);
 
   useEffect(() => {
-    if (!API_URL) return;
+    if (!API_URL) {
+      setMessage(
+        "Falta configurar VITE_API_URL. Se muestran productos de demostración."
+      );
+      return;
+    }
 
     let cancelled = false;
 
     async function cargarProductos() {
       setLoading(true);
-
       try {
         const response = await fetch(`${API_URL}/api/productos`);
-
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
 
         const data: Product[] = await response.json();
-
         if (!cancelled && Array.isArray(data) && data.length > 0) {
           setProducts(
-            data.map((product) => ({
-              ...product,
-              categoria: normalizarCategoria(product.categoria),
-              emoji:
-                product.emoji ??
-                (normalizarCategoria(product.categoria) === "Café"
-                  ? "☕"
-                  : "🍰"),
-            }))
+            data.map((product) => {
+              const categoria = normalizarCategoria(product.categoria ?? "");
+              return {
+                ...product,
+                categoria,
+                emoji: product.emoji ?? (categoria === "Café" ? "☕" : "🍰"),
+              };
+            })
           );
+          setMessage("");
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setMessage(
-            "No se pudo cargar el catálogo del backend. Se muestran productos de demostración."
+            `No se pudo cargar el catálogo de la API. Se muestran productos de demostración. ${
+              error instanceof Error ? error.message : ""
+            }`
           );
         }
       } finally {
@@ -158,22 +158,10 @@ export default function App() {
     }
 
     void cargarProductos();
-
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const filtered = useMemo(
-    () =>
-      category === "Todos"
-        ? products
-        : products.filter(
-            (product) =>
-              normalizarCategoria(product.categoria) === category
-          ),
-    [products, category]
-  );
 
   const cartCount = Object.values(cart).reduce(
     (sum, quantity) => sum + quantity,
@@ -182,7 +170,7 @@ export default function App() {
 
   const total = products.reduce(
     (sum, product) =>
-      sum + (cart[String(product.id)] ?? 0) * product.precio,
+      sum + (cart[String(product.id)] ?? 0) * Number(product.precio),
     0
   );
 
@@ -195,7 +183,7 @@ export default function App() {
 
   const login = () => {
     void auth.signinRedirect({ redirect_uri: REDIRECT_URI }).catch(() => {
-      setMessage("No se pudo iniciar sesión. Revisa Cognito.");
+      setMessage("No se pudo iniciar sesión. Revisa la configuración de Cognito.");
     });
   };
 
@@ -220,15 +208,23 @@ export default function App() {
     setCart((previous) => {
       const next = { ...previous };
       const key = String(id);
-
-      if ((next[key] ?? 0) > 1) {
-        next[key] -= 1;
-      } else {
-        delete next[key];
-      }
-
+      if ((next[key] ?? 0) > 1) next[key] -= 1;
+      else delete next[key];
       return next;
     });
+  };
+
+  const abrirProductos = (categoria = "Todos") => {
+    setCategory(categoria);
+    setActivePage("productos");
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const abrirPagina = (page: Page) => {
+    setActivePage(page);
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   async function checkout() {
@@ -247,6 +243,7 @@ export default function App() {
       return;
     }
 
+    setSendingOrder(true);
     try {
       const response = await fetch(`${API_URL}/api/pedidos`, {
         method: "POST",
@@ -254,7 +251,7 @@ export default function App() {
         body: JSON.stringify({
           cliente: email,
           items: products
-            .filter((product) => cart[String(product.id)])
+            .filter((product) => (cart[String(product.id)] ?? 0) > 0)
             .map((product) => ({
               productoId: product.id,
               nombre: product.nombre,
@@ -265,10 +262,7 @@ export default function App() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setCart({});
       setMessage("¡Tu pedido se envió correctamente!");
     } catch (error) {
@@ -277,29 +271,65 @@ export default function App() {
           error instanceof Error ? error.message : "error de red"
         }. Revisa API Gateway, backend y CORS.`
       );
+    } finally {
+      setSendingOrder(false);
     }
   }
-
-  const elegirCategoria = (value: string) => {
-    setCategory(value);
-    document.getElementById("menu")?.scrollIntoView({
-      behavior: "smooth",
-    });
-  };
 
   return (
     <div className="app">
       <header className="topbar">
-        <a className="brand" href="#inicio">
+        <a
+          className="brand"
+          href="#inicio"
+          onClick={(event) => {
+            event.preventDefault();
+            abrirPagina("inicio");
+          }}
+        >
           <span className="brand-icon">☕</span>
           <span className="brand-name">Coffee Flower</span>
         </a>
 
-        <nav>
-          <a href="#inicio">Inicio</a>
-          <a href="#menu">Productos</a>
-          <a href="#categorias">Categorías</a>
-          <a href="#pedido">
+        <nav aria-label="Navegación principal">
+          <a
+            href="#inicio"
+            aria-current={activePage === "inicio" ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              abrirPagina("inicio");
+            }}
+          >
+            Inicio
+          </a>
+          <a
+            href="#productos"
+            aria-current={activePage === "productos" ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              abrirProductos("Todos");
+            }}
+          >
+            Productos
+          </a>
+          <a
+            href="#categorias"
+            aria-current={activePage === "categorias" ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              abrirPagina("categorias");
+            }}
+          >
+            Categorías
+          </a>
+          <a
+            href="#carrito"
+            aria-current={activePage === "carrito" ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              abrirPagina("carrito");
+            }}
+          >
             Carrito ({cartCount})
           </a>
         </nav>
@@ -310,234 +340,86 @@ export default function App() {
           ) : auth.isAuthenticated ? (
             <>
               <span className="role">{role}</span>
-              <button className="button button-outline" onClick={() => void logout()}>
+              <button
+                type="button"
+                className="button button-outline"
+                onClick={() => void logout()}
+              >
                 Cerrar sesión
               </button>
             </>
           ) : (
-            <button className="button button-dark" onClick={login}>
+            <button
+              type="button"
+              className="button button-dark"
+              onClick={login}
+            >
               Iniciar sesión
             </button>
           )}
         </div>
       </header>
 
-      <main>
-        {/* PORTADA ORIGINAL */}
-        <section className="hero" id="inicio">
-          <div className="hero-copy">
-            <span className="eyebrow">
-              ☕ Bienvenido a Coffee Flower 🌸
-            </span>
+      {activePage === "inicio" && (
+        <Home
+          onViewProducts={() => abrirProductos("Todos")}
+          onViewCategories={() => abrirPagina("categorias")}
+          onSelectCategory={abrirProductos}
+        />
+      )}
 
-            <h1>
-              El sabor que
-              <br />
-              <span>florece</span> en cada
-              <br />
-              taza
-            </h1>
+      {activePage === "productos" && (
+        <Productos
+          products={products}
+          category={category}
+          onSelectCategory={setCategory}
+          onAddToCart={add}
+          loading={loading}
+        />
+      )}
 
-            <p>
-              Descubre nuestros cafés, pasteles y productos preparados
-              especialmente para acompañar tus mejores momentos.
-            </p>
+      {activePage === "categorias" && (
+        <Categorias onSelectCategory={abrirProductos} />
+      )}
 
-            <div className="hero-actions">
-              <button
-                className="button button-dark"
-                onClick={() => elegirCategoria("Todos")}
-              >
-                Ver productos
-              </button>
+      {activePage === "carrito" && (
+        <Cart
+          products={products}
+          cart={cart}
+          onAdd={add}
+          onRemove={remove}
+          onCheckout={() => void checkout()}
+        />
+      )}
 
-              <a className="button button-outline" href="#categorias">
-                Ver categorías
-              </a>
-            </div>
-          </div>
+      {message && (
+        <div className="notice" role="status">
+          <span>{message}</span>
+          <button
+            type="button"
+            onClick={() => setMessage("")}
+            aria-label="Cerrar mensaje"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
-          <div className="hero-visual" aria-label="Café con flores">
-            <div className="hero-circle">
-              <span className="hero-cup">☕</span>
-            </div>
-            <span className="flower flower-one">🌸</span>
-            <span className="flower flower-two">🌷</span>
-          </div>
-        </section>
-
-        {/* SOLO LAS DOS CATEGORÍAS DESTACADAS */}
-        <section className="featured-section" id="categorias">
-          <div className="section-heading">
-            <span className="eyebrow">NUESTROS FAVORITOS</span>
-            <h2>Productos destacados</h2>
-          </div>
-
-          <div className="featured-grid">
-            <button
-              className="featured-card"
-              onClick={() => elegirCategoria("Café")}
-            >
-              <span className="featured-icon">☕</span>
-              <h3>Cafés</h3>
-              <p>
-                Cafés preparados con granos seleccionados para disfrutar
-                cada momento.
-              </p>
-              <span className="featured-link">Ver productos →</span>
-            </button>
-
-            <button
-              className="featured-card"
-              onClick={() => elegirCategoria("Pastelería")}
-            >
-              <span className="featured-icon">🍰</span>
-              <h3>Pastelería</h3>
-              <p>
-                Deliciosos acompañamientos para disfrutar junto a tu café.
-              </p>
-              <span className="featured-link">Ver productos →</span>
-            </button>
-          </div>
-        </section>
-
-        {/* CATÁLOGO FUNCIONAL */}
-        <section className="menu-section" id="menu">
-          <div className="menu-intro">
-            <div>
-              <span className="eyebrow">DESCUBRE TU FAVORITO</span>
-              <h2>Nuestra carta</h2>
-            </div>
-            <p>Elige tus productos favoritos y agrégalos al carrito.</p>
-          </div>
-
-          <div className="menu-toolbar">
-            <div className="menu-tabs">
-              {["Todos", "Café", "Pastelería"].map((item) => (
-                <button
-                  key={item}
-                  className={category === item ? "filter active" : "filter"}
-                  onClick={() => setCategory(item)}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-
-            <span className="catalog-count">
-              {loading ? "CARGANDO…" : `${filtered.length} PRODUCTOS`}
-            </span>
-          </div>
-
-          <div className="products">
-            {filtered.map((product) => (
-              <article className="product" key={product.id}>
-                <div className="product-art">
-                  <span className="product-emoji">
-                    {product.emoji ??
-                      (normalizarCategoria(product.categoria) === "Café"
-                        ? "☕"
-                        : "🍰")}
-                  </span>
-                  <span className="product-category">
-                    {normalizarCategoria(product.categoria)}
-                  </span>
-                  <button
-                    className="add"
-                    onClick={() => add(product.id)}
-                    aria-label={`Agregar ${product.nombre}`}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="product-info">
-                  <h3>{product.nombre}</h3>
-                  <p>{product.descripcion}</p>
-                  <div className="product-price">
-                    <strong>{money(product.precio)}</strong>
-                    <button
-                      className="small-add"
-                      onClick={() => add(product.id)}
-                    >
-                      Agregar +
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* CARRITO */}
-        <section className="checkout" id="pedido">
-          <div className="checkout-heading">
-            <span className="eyebrow">TU SELECCIÓN</span>
-            <h2>
-              Tu pausa,
-              <br />
-              <em>a tu manera.</em>
-            </h2>
-            <p>
-              {cartCount
-                ? `${cartCount} producto(s) en tu carrito.`
-                : "Agrega tus favoritos y prepara tu próximo antojo."}
-            </p>
-
-            {cartCount > 0 && (
-              <div className="cart-items">
-                {products
-                  .filter((product) => cart[String(product.id)])
-                  .map((product) => (
-                    <div className="cart-item" key={product.id}>
-                      <span>
-                        {product.emoji ?? "☕"} {product.nombre} ×{" "}
-                        {cart[String(product.id)]}
-                      </span>
-                      <button
-                        className="remove-item"
-                        onClick={() => remove(product.id)}
-                      >
-                        −
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          <div className="checkout-card">
-            <span className="checkout-label">RESUMEN DE TU PEDIDO</span>
-            <div className="checkout-row">
-              <span>Productos</span>
-              <strong>{cartCount}</strong>
-            </div>
-            <div className="checkout-row checkout-total">
-              <span>Total estimado</span>
-              <strong>{money(total)}</strong>
-            </div>
-            <button
-              className="button button-dark checkout-button"
-              onClick={() => void checkout()}
-            >
-              Continuar pedido ↗
-            </button>
-            <small>Un pequeño gusto, una gran sonrisa.</small>
-          </div>
-        </section>
-
-        {message && (
-          <div className="notice" role="status">
-            <span>{message}</span>
-            <button onClick={() => setMessage("")} aria-label="Cerrar">
-              ×
-            </button>
-          </div>
-        )}
-      </main>
+      {sendingOrder && (
+        <div className="notice" role="status">
+          Enviando tu pedido…
+        </div>
+      )}
 
       <footer>
-        <a className="brand footer-brand" href="#inicio">
+        <a
+          className="brand footer-brand"
+          href="#inicio"
+          onClick={(event) => {
+            event.preventDefault();
+            abrirPagina("inicio");
+          }}
+        >
           <span className="brand-icon">☕</span>
           <span className="brand-name">Coffee Flower</span>
         </a>
