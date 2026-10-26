@@ -7,30 +7,94 @@ import Productos, { type Product } from "./pages/Productos";
 import Categorias from "./pages/Categorias";
 import Cart from "./pages/Cart";
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined)
-  ?.replace(/\/$/, "") ?? "";
+const API_URL = (
+  import.meta.env.VITE_API_URL as string | undefined
+)?.replace(/\/$/, "") ?? "";
 
 const REDIRECT_URI = "https://coffee-flower-frontend.vercel.app/";
+const COGNITO_DOMAIN =
+  "https://us-east-1qhhxge8jy.auth.us-east-1.amazoncognito.com";
+const COGNITO_CLIENT_ID = "3g344v2pmve6jr3vvua4k71cla";
 
 type Page = "inicio" | "productos" | "categorias" | "carrito";
 
 const DEMO_PRODUCTS: Product[] = [
-  { id: 1, nombre: "Latte Vainilla", descripcion: "Espresso, leche cremosa y un toque de vainilla.", precio: 3490, categoria: "Café", emoji: "☕" },
-  { id: 2, nombre: "Cappuccino", descripcion: "Espresso intenso con espuma de leche.", precio: 2990, categoria: "Café", emoji: "🥛" },
-  { id: 3, nombre: "Croissant de mantequilla", descripcion: "Hojaldre dorado, horneado cada mañana.", precio: 2290, categoria: "Pastelería", emoji: "🥐" },
-  { id: 4, nombre: "Torta de chocolate", descripcion: "Bizcocho húmedo con ganache de chocolate.", precio: 3990, categoria: "Pastelería", emoji: "🍰" },
-  { id: 5, nombre: "Cold Brew", descripcion: "Café de extracción lenta, suave y refrescante.", precio: 3290, categoria: "Café", emoji: "🧋" },
-  { id: 6, nombre: "Roll de canela", descripcion: "Masa suave, canela y glaseado delicado.", precio: 2590, categoria: "Pastelería", emoji: "🥮" },
+  {
+    id: 1,
+    nombre: "Latte Vainilla",
+    descripcion: "Espresso, leche cremosa y un toque de vainilla.",
+    precio: 3490,
+    categoria: "Café",
+    emoji: "☕",
+  },
+  {
+    id: 2,
+    nombre: "Cappuccino",
+    descripcion: "Espresso intenso con espuma de leche.",
+    precio: 2990,
+    categoria: "Café",
+    emoji: "🥛",
+  },
+  {
+    id: 3,
+    nombre: "Croissant de mantequilla",
+    descripcion: "Hojaldre dorado, horneado cada mañana.",
+    precio: 2290,
+    categoria: "Pastelería",
+    emoji: "🥐",
+  },
+  {
+    id: 4,
+    nombre: "Torta de chocolate",
+    descripcion: "Bizcocho húmedo con ganache de chocolate.",
+    precio: 3990,
+    categoria: "Pastelería",
+    emoji: "🍰",
+  },
+  {
+    id: 5,
+    nombre: "Cold Brew",
+    descripcion: "Café de extracción lenta, suave y refrescante.",
+    precio: 3290,
+    categoria: "Café",
+    emoji: "🧋",
+  },
+  {
+    id: 6,
+    nombre: "Roll de canela",
+    descripcion: "Masa suave, canela y glaseado delicado.",
+    precio: 2590,
+    categoria: "Pastelería",
+    emoji: "🥮",
+  },
 ];
 
 function obtenerCategoria(product: Product): string {
-  const categoria = String(product.categoria ?? "").toLowerCase().trim();
-  const nombre = String(product.nombre ?? "").toLowerCase().trim();
+  const categoria = String(product.categoria ?? "")
+    .toLowerCase()
+    .trim();
+
+  const nombre = String(product.nombre ?? "")
+    .toLowerCase()
+    .trim();
 
   const palabrasPasteleria = [
-    "cheesecake", "torta", "zanahoria", "pie de limón", "pie de limon",
-    "brownie", "muffin", "croissant", "roll de canela", "kuchen",
-    "pastel", "galleta", "queque", "factura", "berlín", "berlin",
+    "cheesecake",
+    "torta",
+    "zanahoria",
+    "pie de limón",
+    "pie de limon",
+    "brownie",
+    "muffin",
+    "croissant",
+    "roll de canela",
+    "kuchen",
+    "pastel",
+    "galleta",
+    "queque",
+    "factura",
+    "berlín",
+    "berlin",
   ];
 
   if (
@@ -64,7 +128,10 @@ function obtenerCategoria(product: Product): string {
 }
 
 function obtenerEmoji(product: Product, categoria: string): string {
-  if (product.emoji?.trim()) return product.emoji;
+  if (product.emoji?.trim()) {
+    return product.emoji;
+  }
+
   return categoria === "Café" ? "☕" : "🍰";
 }
 
@@ -91,7 +158,9 @@ export default function App() {
         : "Cliente";
 
   const email = String(
-    auth.user?.profile?.email ?? auth.user?.profile?.username ?? ""
+    auth.user?.profile?.email ??
+      auth.user?.profile?.username ??
+      ""
   );
 
   const authHeaders = useCallback((): HeadersInit => {
@@ -103,6 +172,7 @@ export default function App() {
     };
   }, [auth.user]);
 
+  // Cargar catálogo desde API Gateway.
   useEffect(() => {
     if (!API_URL) {
       setMessage(
@@ -144,14 +214,18 @@ export default function App() {
         }
       } catch (error) {
         if (!cancelled) {
+          console.error("Error al cargar productos:", error);
+
           setMessage(
-            `No se pudo cargar el catálogo de la API. Se muestran productos de demostración. ${
+            `No se pudo cargar el catálogo. Se muestran productos de demostración. ${
               error instanceof Error ? error.message : ""
             }`
           );
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -169,22 +243,22 @@ export default function App() {
 
   const total = products.reduce(
     (sum, product) =>
-      sum + (cart[String(product.id)] ?? 0) * Number(product.precio),
+      sum +
+      (cart[String(product.id)] ?? 0) * Number(product.precio),
     0
   );
 
+  // Iniciar sesión con Cognito.
   const login = () => {
     setMessage("");
 
-    void auth.signinRedirect({
-      redirect_uri: REDIRECT_URI,
-    }).catch((error) => {
+    void auth.signinRedirect().catch((error) => {
       console.error("Error al iniciar sesión:", error);
       setMessage("No se pudo iniciar sesión. Revisa la configuración de Cognito.");
     });
   };
 
-  // Cierre de sesión mediante el proveedor OIDC/Cognito.
+  // Cerrar sesión local y salir de la sesión administrada de Cognito.
   const logout = async () => {
     if (loggingOut) return;
 
@@ -192,13 +266,18 @@ export default function App() {
     setMessage("");
 
     try {
-      await auth.signoutRedirect();
+      await auth.removeUser();
+
+      const logoutUrl = new URL(`${COGNITO_DOMAIN}/logout`);
+
+      logoutUrl.searchParams.set("client_id", COGNITO_CLIENT_ID);
+      logoutUrl.searchParams.set("logout_uri", REDIRECT_URI);
+
+      window.location.assign(logoutUrl.toString());
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       setLoggingOut(false);
-      setMessage(
-        "No se pudo cerrar la sesión. Revisa la configuración OIDC y Cognito."
-      );
+      setMessage("No se pudo cerrar la sesión. Inténtalo nuevamente.");
     }
   };
 
@@ -216,8 +295,11 @@ export default function App() {
       const next = { ...previous };
       const key = String(id);
 
-      if ((next[key] ?? 0) > 1) next[key] -= 1;
-      else delete next[key];
+      if ((next[key] ?? 0) > 1) {
+        next[key] -= 1;
+      } else {
+        delete next[key];
+      }
 
       return next;
     });
@@ -236,6 +318,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Enviar pedido al backend.
   async function checkout() {
     if (!auth.isAuthenticated) {
       setMessage("Inicia sesión para continuar con tu pedido.");
@@ -281,6 +364,7 @@ export default function App() {
       setMessage("¡Tu pedido se envió correctamente!");
     } catch (error) {
       console.error("Error al enviar pedido:", error);
+
       setMessage(
         `No se pudo enviar el pedido: ${
           error instanceof Error ? error.message : "error de red"
