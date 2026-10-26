@@ -25,12 +25,18 @@ const authConfig: AuthProviderProps = {
   response_type: "code",
   scope: "openid email",
 
+  // Regresar a Coffee Flower después de iniciar sesión.
   onSigninCallback: () => {
     window.history.replaceState(
       {},
       document.title,
       window.location.pathname
     );
+  },
+
+  // Limpiar la sesión local después de cerrar sesión.
+  onSignoutCallback: () => {
+    window.location.replace(redirectUri);
   },
 };
 
