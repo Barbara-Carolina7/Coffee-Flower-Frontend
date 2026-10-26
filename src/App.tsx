@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "react-oidc-context";
 
@@ -77,8 +78,7 @@ const DEMO_PRODUCTS: Product[] = [
 export default function App() {
   const auth = useAuth();
 
-  const [products, setProducts] =
-    useState<Product[]>(DEMO_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>(DEMO_PRODUCTS);
   const [category, setCategory] = useState("Todos");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
@@ -86,16 +86,14 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
 
   const groups =
-    (auth.user?.profile?.["cognito:groups"] as
-      | string[]
-      | undefined) ?? [];
+    (auth.user?.profile?.["cognito:groups"] as string[] | undefined) ?? [];
 
-  const role = groups.includes("Administrador") ||
-    groups.includes("Admin")
-    ? "Administrador"
-    : groups.includes("Colaborador")
-      ? "Colaborador"
-      : "Cliente";
+  const role =
+    groups.includes("Administrador") || groups.includes("Admin")
+      ? "Administrador"
+      : groups.includes("Colaborador")
+        ? "Colaborador"
+        : "Cliente";
 
   const email = String(
     auth.user?.profile?.email ??
@@ -121,9 +119,7 @@ export default function App() {
       setLoading(true);
 
       try {
-        const response = await fetch(
-          `${API_URL}/api/productos`
-        );
+        const response = await fetch(`${API_URL}/api/productos`);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -131,11 +127,7 @@ export default function App() {
 
         const data: Product[] = await response.json();
 
-        if (
-          !cancelled &&
-          Array.isArray(data) &&
-          data.length > 0
-        ) {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
           setProducts(data);
           setMessage("");
         }
@@ -161,9 +153,7 @@ export default function App() {
     () =>
       category === "Todos"
         ? products
-        : products.filter(
-            (product) => product.categoria === category
-          ),
+        : products.filter((product) => product.categoria === category),
     [products, category]
   );
 
@@ -174,8 +164,7 @@ export default function App() {
 
   const total = products.reduce(
     (sum, product) =>
-      sum +
-      (cart[String(product.id)] ?? 0) * product.precio,
+      sum + (cart[String(product.id)] ?? 0) * product.precio,
     0
   );
 
@@ -195,9 +184,7 @@ export default function App() {
     }
 
     if (auth.isLoading) {
-      setMessage(
-        "Espera un momento mientras se verifica tu sesión."
-      );
+      setMessage("Espera un momento mientras se verifica tu sesión.");
       return;
     }
 
@@ -227,17 +214,14 @@ export default function App() {
         window.location.assign(REDIRECT_URI);
       }
     } catch {
-      setMessage(
-        "No se pudo cerrar la sesión correctamente."
-      );
+      setMessage("No se pudo cerrar la sesión correctamente.");
     }
   };
 
   const add = (id: string | number) => {
     setCart((previous) => ({
       ...previous,
-      [String(id)]:
-        (previous[String(id)] ?? 0) + 1,
+      [String(id)]: (previous[String(id)] ?? 0) + 1,
     }));
 
     setMessage("");
@@ -260,16 +244,12 @@ export default function App() {
 
   async function checkout() {
     if (!auth.isAuthenticated) {
-      setMessage(
-        "Inicia sesión para continuar con tu pedido."
-      );
+      setMessage("Inicia sesión para continuar con tu pedido.");
       return;
     }
 
     if (!cartCount) {
-      setMessage(
-        "Agrega productos al carrito primero."
-      );
+      setMessage("Agrega productos al carrito primero.");
       return;
     }
 
@@ -281,25 +261,22 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/pedidos`,
-        {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({
-            cliente: email,
-            items: products
-              .filter((product) => cart[String(product.id)])
-              .map((product) => ({
-                productoId: product.id,
-                nombre: product.nombre,
-                cantidad: cart[String(product.id)],
-                precio: product.precio,
-              })),
-            total,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/pedidos`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          cliente: email,
+          items: products
+            .filter((product) => cart[String(product.id)])
+            .map((product) => ({
+              productoId: product.id,
+              nombre: product.nombre,
+              cantidad: cart[String(product.id)],
+              precio: product.precio,
+            })),
+          total,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -310,9 +287,7 @@ export default function App() {
     } catch (error) {
       setMessage(
         `No se pudo enviar el pedido: ${
-          error instanceof Error
-            ? error.message
-            : "error de red"
+          error instanceof Error ? error.message : "error de red"
         }. Revisa API Gateway, el backend y CORS.`
       );
     }
@@ -335,7 +310,7 @@ export default function App() {
           <span className="brand-icon">✿</span>
           <span className="brand-name">
             coffee flower
-            <small>PASTRY · COFFEE HOUSE</small>
+            <small>CAFÉ · PASTELERÍA</small>
           </span>
         </a>
 
@@ -343,27 +318,19 @@ export default function App() {
           className="mobile-toggle"
           onClick={() => setMobileMenu(!mobileMenu)}
           aria-label="Abrir menú"
+          aria-expanded={mobileMenu}
         >
           ☰
         </button>
 
         <nav className={mobileMenu ? "nav-open" : ""}>
-          <a
-            href="#menu"
-            onClick={() => setMobileMenu(false)}
-          >
-            La carta
+          <a href="#menu" onClick={() => setMobileMenu(false)}>
+            Productos
           </a>
-          <a
-            href="#nosotros"
-            onClick={() => setMobileMenu(false)}
-          >
-            Nuestra historia
+          <a href="#nosotros" onClick={() => setMobileMenu(false)}>
+            Nosotros
           </a>
-          <a
-            href="#pedido"
-            onClick={() => setMobileMenu(false)}
-          >
+          <a href="#pedido" onClick={() => setMobileMenu(false)}>
             Carrito <span className="cart-pill">{cartCount}</span>
           </a>
         </nav>
@@ -394,42 +361,40 @@ export default function App() {
       </header>
 
       <main>
+        {/* PORTADA ORIGINAL DE COFFEE FLOWER */}
         <section className="hero" id="inicio">
           <div className="hero-copy">
             <span className="eyebrow">
-              <span className="eyebrow-line" />
-              UNA DULCE FORMA DE PAUSAR
+              ☕ BIENVENIDO A COFFEE FLOWER 🌸
             </span>
 
             <h1>
-              Un capricho
+              El sabor que
               <br />
-              que <em>florece</em>
+              <em>florece</em>
               <br />
-              en tu día.
+              en cada taza.
             </h1>
 
             <p>
-              Café con carácter, pastelería hecha con cariño
-              y pequeños momentos que merecen disfrutarse sin
-              prisa.
+              Descubre nuestros cafés, pasteles y productos preparados
+              especialmente para acompañar tus mejores momentos.
             </p>
 
             <div className="hero-actions">
-              <a className="button button-light" href="#menu">
-                Explorar la carta <span>↗</span>
+              <a className="button button-dark" href="#menu">
+                Ver productos <span>↗</span>
               </a>
-              <span className="hero-aside">
-                Preparado cada día
-                <br />
-                con ingredientes ricos.
-              </span>
+
+              <a className="button button-outline" href="#menu">
+                Ver categorías
+              </a>
             </div>
 
             <div className="hero-bottom-note">
-              <span>01 / 03</span>
+              <span>✿</span>
               <span className="note-rule" />
-              COFFEE, CAKE & A LITTLE JOY
+              HECHO CON CARIÑO, SERVIDO CON AROMA
             </div>
           </div>
 
@@ -437,33 +402,30 @@ export default function App() {
             <div className="hero-photo-shape">
               <div className="photo-orbit orbit-one" />
               <div className="photo-orbit orbit-two" />
+
               <div className="hero-food">☕</div>
               <div className="hero-pastry">🥐</div>
+
               <div className="photo-label">
-                BAKED
+                COFFEE FLOWER
                 <br />
-                WITH LOVE
+                CAFÉ · PASTELERÍA
               </div>
             </div>
 
-            <div className="vertical-label">
-              COFFEE FLOWER · EST. WITH LOVE
-            </div>
-
             <div className="hero-stamp">
-              FRESH
+              <b>FRESH</b>
               <br />
-              <b>DAILY</b>
+              DAILY
               <br />
               ✿
             </div>
-          </div>
 
-          <div className="hero-number">
-            CF<span>—</span>01
+            <div className="vertical-label">UNA PAUSA BONITA</div>
           </div>
         </section>
 
+        {/* ESPECIALIDADES */}
         <section className="marquee" aria-label="Especialidades">
           <span>CAFÉ DE ESPECIALIDAD</span>
           <i>✳</i>
@@ -474,24 +436,25 @@ export default function App() {
           <span>CAFÉ DE ESPECIALIDAD</span>
         </section>
 
+        {/* CATÁLOGO */}
         <section className="menu-section" id="menu">
           <div className="menu-intro">
             <div>
               <span className="eyebrow">
                 <span className="eyebrow-line" />
-                HECHO PARA DISFRUTAR
+                NUESTROS FAVORITOS
               </span>
+
               <h2>
-                Pequeñas cosas.
+                Productos
                 <br />
-                <em>Grandes antojos.</em>
+                <em>para disfrutar.</em>
               </h2>
             </div>
 
             <p>
-              Tu próximo favorito está aquí. Elige algo rico
-              y convierte cualquier momento en una ocasión
-              especial.
+              Descubre nuestros cafés y dulces favoritos. Elige algo rico
+              y convierte cualquier momento en una ocasión especial.
             </p>
           </div>
 
@@ -513,14 +476,14 @@ export default function App() {
             <span className="catalog-count">
               {loading
                 ? "ACTUALIZANDO CARTA…"
-                : `${filtered.length.toString().padStart(2, "0")} DELICIAS EN LA CARTA`}
+                : `${filtered.length.toString().padStart(2, "0")} PRODUCTOS`}
             </span>
           </div>
 
           {!API_URL && (
             <p className="demo-note">
-              Carta de muestra · los productos reales aparecerán
-              al conectar el backend.
+              Catálogo de demostración. Los productos reales aparecerán
+              cuando conectes el backend.
             </p>
           )}
 
@@ -532,14 +495,15 @@ export default function App() {
               >
                 <div className={`product-art art-${index % 4}`}>
                   <span className="product-index">
-                    0{index + 1}
+                    {String(index + 1).padStart(2, "0")}
                   </span>
-                  <span className="product-emoji">
-                    {product.emoji}
-                  </span>
+
+                  <span className="product-emoji">{product.emoji}</span>
+
                   <span className="product-category">
                     {product.categoria}
                   </span>
+
                   <button
                     className="add"
                     onClick={() => add(product.id)}
@@ -554,6 +518,7 @@ export default function App() {
                     <h3>{product.nombre}</h3>
                     <p>{product.descripcion}</p>
                   </div>
+
                   <strong>{money(product.precio)}</strong>
                 </div>
               </article>
@@ -561,6 +526,7 @@ export default function App() {
           </div>
         </section>
 
+        {/* NUESTRA HISTORIA */}
         <section className="story" id="nosotros">
           <div className="story-art">
             <span>✿</span>
@@ -575,20 +541,19 @@ export default function App() {
           <div className="story-copy">
             <span className="eyebrow">
               <span className="eyebrow-line" />
-              DETRÁS DE CADA DETALLE
+              NUESTRA ESENCIA
             </span>
 
             <h2>
-              No es solo café.
+              El sabor que
               <br />
-              <em>Es sentirte en casa.</em>
+              <em>te hace sentir en casa.</em>
             </h2>
 
             <p>
-              En Coffee Flower creemos en las pausas bonitas:
-              una taza recién preparada, algo dulce para
-              compartir y la alegría de regalarte un momento
-              solo para ti.
+              En Coffee Flower creemos en las pausas bonitas: una taza
+              recién preparada, algo dulce para compartir y la alegría
+              de regalarte un momento solo para ti.
             </p>
 
             <a href="#menu" className="text-link">
@@ -603,6 +568,7 @@ export default function App() {
           </div>
         </section>
 
+        {/* CARRITO Y PEDIDOS */}
         <section className="checkout" id="pedido">
           <div className="checkout-heading">
             <span className="eyebrow">
@@ -611,9 +577,9 @@ export default function App() {
             </span>
 
             <h2>
-              La parte más
+              Tu pausa,
               <br />
-              <em>deliciosa del día.</em>
+              <em>a tu manera.</em>
             </h2>
 
             <p>
@@ -627,10 +593,7 @@ export default function App() {
                 {products
                   .filter((product) => cart[String(product.id)])
                   .map((product) => (
-                    <div
-                      key={product.id}
-                      className="cart-item"
-                    >
+                    <div key={product.id} className="cart-item">
                       <span>
                         {product.emoji} {product.nombre} ×{" "}
                         {cart[String(product.id)]}
@@ -650,9 +613,7 @@ export default function App() {
           </div>
 
           <div className="checkout-card">
-            <span className="checkout-label">
-              RESUMEN DE TU PEDIDO
-            </span>
+            <span className="checkout-label">RESUMEN DE TU PEDIDO</span>
 
             <div className="checkout-row">
               <span>Productos</span>
@@ -675,12 +636,14 @@ export default function App() {
           </div>
         </section>
 
+        {/* MENSAJES */}
         {(auth.error || message) && (
           <div className="notice" role="status">
             <span>
               {message ||
                 "No se pudo verificar la sesión. Intenta iniciar sesión nuevamente."}
             </span>
+
             <button
               onClick={() => setMessage("")}
               aria-label="Cerrar mensaje"
@@ -691,12 +654,14 @@ export default function App() {
         )}
       </main>
 
+      {/* PIE DE PÁGINA */}
       <footer>
         <a className="brand footer-brand" href="#inicio">
           <span className="brand-icon">✿</span>
+
           <span className="brand-name">
             coffee flower
-            <small>PASTRY · COFFEE HOUSE</small>
+            <small>CAFÉ · PASTELERÍA</small>
           </span>
         </a>
 
