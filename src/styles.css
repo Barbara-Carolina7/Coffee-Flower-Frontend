@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
 
 :root {
@@ -332,7 +331,15 @@ a {
 
 /* CATÁLOGO */
 
+.products-page {
+  display: block;
+  width: 100%;
+  min-height: 400px;
+}
+
 .menu-section {
+  display: block;
+  width: 100%;
   padding: 80px 9%;
   background: #fffaf7;
 }
@@ -344,6 +351,7 @@ a {
   gap: 30px;
 }
 
+.menu-intro h1,
 .menu-intro h2 {
   margin: 15px 0 0;
   color: var(--brown);
@@ -352,7 +360,7 @@ a {
 
 .menu-intro > p {
   max-width: 350px;
-  color: var(--muted, #816b64);
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -397,12 +405,16 @@ a {
 
 .products {
   display: grid;
+  width: 100%;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 
 .product {
+  display: block;
+  width: 100%;
   min-width: 0;
+  min-height: 200px;
   overflow: hidden;
   border: 1px solid #eedbd2;
   border-radius: 17px;
@@ -464,6 +476,7 @@ a {
 }
 
 .product-info {
+  display: block;
   padding: 18px;
 }
 
@@ -507,8 +520,9 @@ a {
 /* CARRITO */
 
 .checkout {
-  padding: 75px 9%;
   display: grid;
+  width: 100%;
+  padding: 75px 9%;
   grid-template-columns: minmax(0, 1fr) minmax(350px, 440px);
   align-items: center;
   gap: 60px;
@@ -831,144 +845,39 @@ footer {
   }
 }
 
-/* ===== PORTADA ORIGINAL COFFEE FLOWER ===== */
+/* ===== AJUSTES DE VISIBILIDAD ===== */
 
-.menu-section,
-.checkout,
-footer {
-  display: none !important;
-}
+/* No ocultar .menu-section, .checkout ni footer.
+   El catálogo y el carrito deben permanecer visibles. */
 
-/* Mantener el diseño de portada */
-.hero {
-  min-height: 600px;
-  padding: 65px 10%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 55px;
-  background:
-    radial-gradient(ellipse at 78% 45%, #f4e5df 0%, transparent 50%),
-    #fff9f5;
-}
-
-.hero h1 {
-  color: #492b25;
-  font-size: clamp(44px, 5vw, 67px);
-  line-height: 1.12;
-}
-
-.hero h1 span {
-  color: #a6532d;
-}
-
-.hero-circle {
-  background: linear-gradient(140deg, #fbefee, #f9e9ed);
-}
-
-/* Dos tarjetas centradas */
-.featured-section {
+.products-page,
+.menu-section {
   display: block;
-  padding: 70px 9% 85px;
-  background: #fff;
-}
-
-.section-heading {
-  margin: 0 auto 40px;
-  text-align: center;
-}
-
-.section-heading h2 {
-  color: #492b25;
-  font-size: clamp(32px, 4vw, 46px);
-}
-
-.featured-grid {
   width: 100%;
-  max-width: 1050px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 30px;
 }
 
-.featured-card {
-  min-height: 320px;
-  padding: 35px 30px;
+.products {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.product {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.checkout {
+  display: grid;
+}
+
+footer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  border: 1px solid #eedbd2;
-  border-radius: 24px;
-  background: #fffaf7;
-  color: #492b25;
-  text-align: center;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.featured-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 14px 35px #492b2510;
-}
-
-.featured-icon {
-  width: 95px;
-  height: 95px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #f9edee;
-  font-size: 53px;
-}
-
-.featured-card h3 {
-  margin: 20px 0 10px;
-  font-size: 27px;
-}
-
-.featured-card p {
-  max-width: 300px;
-  margin: 0;
-  color: #72584c;
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.featured-link {
-  margin-top: 22px;
-  color: #a6532d;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-/* Adaptación a celulares */
 @media (max-width: 700px) {
-  .hero {
-    padding: 45px 7% 55px;
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .hero h1 {
-    font-size: clamp(43px, 10vw, 58px);
-  }
-
-  .hero-visual {
-    min-height: 320px;
-  }
-
-  .featured-section {
-    padding: 50px 6%;
-  }
-
-  .featured-grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .featured-card {
-    min-height: 285px;
-    padding: 28px 22px;
+  .products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
