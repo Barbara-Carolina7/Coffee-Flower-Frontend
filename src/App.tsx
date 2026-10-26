@@ -15,13 +15,6 @@ const API_URL = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.replace(/\/$/, "") ?? "";
 
-const COGNITO_DOMAIN = (
-  import.meta.env.VITE_COGNITO_DOMAIN as string | undefined
-)?.replace(/\/$/, "");
-
-const COGNITO_CLIENT_ID = import.meta.env
-  .VITE_COGNITO_CLIENT_ID as string | undefined;
-
 const REDIRECT_URI = "https://coffee-flower-frontend.vercel.app/";
 
 const DEMO_PRODUCTS: Product[] = [
@@ -97,7 +90,6 @@ export default function App() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
 
   const groups =
     (auth.user?.profile?.["cognito:groups"] as string[] | undefined) ?? [];
@@ -153,12 +145,11 @@ export default function App() {
                   : "🍰"),
             }))
           );
-          setMessage("");
         }
       } catch {
         if (!cancelled) {
           setMessage(
-            "No se pudo cargar el catálogo real. Se muestran productos de demostración."
+            "No se pudo cargar el catálogo del backend. Se muestran productos de demostración."
           );
         }
       } finally {
@@ -203,36 +194,17 @@ export default function App() {
     });
 
   const login = () => {
-    if (auth.isLoading) {
-      setMessage("Espera mientras verificamos tu sesión.");
-      return;
-    }
-
     void auth.signinRedirect({ redirect_uri: REDIRECT_URI }).catch(() => {
-      setMessage(
-        "No se pudo iniciar sesión. Revisa la configuración de Cognito."
-      );
+      setMessage("No se pudo iniciar sesión. Revisa Cognito.");
     });
   };
 
   const logout = async () => {
     try {
       await auth.removeUser();
-
-      if (COGNITO_DOMAIN && COGNITO_CLIENT_ID) {
-        const params = new URLSearchParams({
-          client_id: COGNITO_CLIENT_ID,
-          logout_uri: REDIRECT_URI,
-        });
-
-        window.location.assign(
-          `${COGNITO_DOMAIN}/logout?${params.toString()}`
-        );
-      } else {
-        window.location.assign(REDIRECT_URI);
-      }
+      window.location.assign(REDIRECT_URI);
     } catch {
-      setMessage("No se pudo cerrar la sesión correctamente.");
+      setMessage("No se pudo cerrar la sesión.");
     }
   };
 
@@ -241,7 +213,6 @@ export default function App() {
       ...previous,
       [String(id)]: (previous[String(id)] ?? 0) + 1,
     }));
-
     setMessage("");
   };
 
@@ -272,9 +243,7 @@ export default function App() {
     }
 
     if (!API_URL) {
-      setMessage(
-        "Falta VITE_API_URL. Configura la URL de tu API en las variables de entorno."
-      );
+      setMessage("Configura VITE_API_URL para enviar pedidos al backend.");
       return;
     }
 
@@ -306,7 +275,7 @@ export default function App() {
       setMessage(
         `No se pudo enviar el pedido: ${
           error instanceof Error ? error.message : "error de red"
-        }. Revisa API Gateway, el backend y CORS.`
+        }. Revisa API Gateway, backend y CORS.`
       );
     }
   }
@@ -320,85 +289,58 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="announcement">
-        <span>✿</span>
-        UN MOMENTO BONITO COMIENZA CON UN BUEN CAFÉ
-        <span>✿</span>
-      </div>
-
       <header className="topbar">
-        <a className="brand" href="#inicio" aria-label="Coffee Flower inicio">
-          <span className="brand-icon">✿</span>
-          <span className="brand-name">
-            coffee flower
-            <small>CAFÉ · PASTELERÍA</small>
-          </span>
+        <a className="brand" href="#inicio">
+          <span className="brand-icon">☕</span>
+          <span className="brand-name">Coffee Flower</span>
         </a>
 
-        <button
-          className="mobile-toggle"
-          onClick={() => setMobileMenu(!mobileMenu)}
-          aria-label="Abrir menú"
-          aria-expanded={mobileMenu}
-        >
-          ☰
-        </button>
-
-        <nav className={mobileMenu ? "nav-open" : ""}>
-          <a href="#inicio" onClick={() => setMobileMenu(false)}>
-            Inicio
-          </a>
-          <a href="#categorias" onClick={() => setMobileMenu(false)}>
-            Categorías
-          </a>
-          <a href="#menu" onClick={() => setMobileMenu(false)}>
-            Productos
-          </a>
-          <a href="#nosotros" onClick={() => setMobileMenu(false)}>
-            Nosotros
-          </a>
-          <a href="#pedido" onClick={() => setMobileMenu(false)}>
-            Carrito <span className="cart-pill">{cartCount}</span>
+        <nav>
+          <a href="#inicio">Inicio</a>
+          <a href="#menu">Productos</a>
+          <a href="#categorias">Categorías</a>
+          <a href="#pedido">
+            Carrito ({cartCount})
           </a>
         </nav>
 
         <div className="account">
           {auth.isLoading ? (
-            <span className="role">Verificando…</span>
+            <span>Verificando…</span>
           ) : auth.isAuthenticated ? (
             <>
               <span className="role">{role}</span>
               <button className="button button-outline" onClick={() => void logout()}>
-                Cerrar sesión ↗
+                Cerrar sesión
               </button>
             </>
           ) : (
             <button className="button button-dark" onClick={login}>
-              Mi cuenta ↗
+              Iniciar sesión
             </button>
           )}
         </div>
       </header>
 
       <main>
+        {/* PORTADA ORIGINAL */}
         <section className="hero" id="inicio">
           <div className="hero-copy">
             <span className="eyebrow">
-              <span className="eyebrow-line" />
-              BIENVENIDO A COFFEE FLOWER
+              ☕ Bienvenido a Coffee Flower 🌸
             </span>
 
             <h1>
               El sabor que
               <br />
-              <em>florece</em>
+              <span>florece</span> en cada
               <br />
-              en cada taza.
+              taza
             </h1>
 
             <p>
-              Un café preparado con cariño, un dulce para alegrar tu día
-              y pequeños momentos que merecen disfrutarse sin prisa.
+              Descubre nuestros cafés, pasteles y productos preparados
+              especialmente para acompañar tus mejores momentos.
             </p>
 
             <div className="hero-actions">
@@ -406,122 +348,67 @@ export default function App() {
                 className="button button-dark"
                 onClick={() => elegirCategoria("Todos")}
               >
-                Descubrir la carta <span>↗</span>
+                Ver productos
               </button>
 
               <a className="button button-outline" href="#categorias">
                 Ver categorías
               </a>
             </div>
-
-            <div className="hero-bottom-note">
-              <span>✿</span>
-              <span className="note-rule" />
-              HECHO CON CARIÑO, SERVIDO CON AROMA
-            </div>
           </div>
 
-          <div className="hero-visual" aria-label="Ilustración de café y pastelería">
-            <div className="flower-decoration flower-top">✿</div>
-            <div className="flower-decoration flower-side">✿</div>
-
-            <div className="hero-photo-shape">
-              <div className="photo-orbit orbit-one" />
-              <div className="photo-orbit orbit-two" />
-              <div className="hero-food">☕</div>
-              <div className="hero-pastry">🥐</div>
-              <div className="photo-label">
-                COFFEE FLOWER
-                <br />
-                CAFÉ · PASTELERÍA
-              </div>
+          <div className="hero-visual" aria-label="Café con flores">
+            <div className="hero-circle">
+              <span className="hero-cup">☕</span>
             </div>
-
-            <div className="hero-stamp">
-              <b>FRESH</b>
-              <br />
-              DAILY
-              <br />
-              ✿
-            </div>
-            <div className="vertical-label">UNA PAUSA BONITA</div>
+            <span className="flower flower-one">🌸</span>
+            <span className="flower flower-two">🌷</span>
           </div>
         </section>
 
-        <section className="marquee" aria-label="Especialidades">
-          <span>CAFÉ DE ESPECIALIDAD</span>
-          <i>✿</i>
-          <span>PASTELERÍA ARTESANAL</span>
-          <i>✿</i>
-          <span>PEQUEÑOS MOMENTOS FELICES</span>
-        </section>
-
+        {/* SOLO LAS DOS CATEGORÍAS DESTACADAS */}
         <section className="featured-section" id="categorias">
           <div className="section-heading">
-            <span className="eyebrow">
-              <span className="eyebrow-line" />
-              ELIGE TU MOMENTO
-            </span>
-            <h2>
-              Algo rico
-              <br />
-              <em>te está esperando.</em>
-            </h2>
-            <p>
-              Desde el primer sorbo hasta el último bocado,
-              encuentra tu favorito.
-            </p>
+            <span className="eyebrow">NUESTROS FAVORITOS</span>
+            <h2>Productos destacados</h2>
           </div>
 
           <div className="featured-grid">
             <button
-              className="featured-card coffee-category"
+              className="featured-card"
               onClick={() => elegirCategoria("Café")}
             >
-              <span className="featured-flower">✿</span>
-              <span className="featured-emoji">☕</span>
-              <span className="featured-kicker">PARA DESPERTAR TUS SENTIDOS</span>
-              <span className="featured-title">Cafés</span>
-              <span className="featured-description">
-                Aromas envolventes y sabores para disfrutar a tu ritmo.
-              </span>
-              <span className="featured-link">Explorar cafés ↗</span>
+              <span className="featured-icon">☕</span>
+              <h3>Cafés</h3>
+              <p>
+                Cafés preparados con granos seleccionados para disfrutar
+                cada momento.
+              </p>
+              <span className="featured-link">Ver productos →</span>
             </button>
 
             <button
-              className="featured-card pastry-category"
+              className="featured-card"
               onClick={() => elegirCategoria("Pastelería")}
             >
-              <span className="featured-flower">✿</span>
-              <span className="featured-emoji">🍰</span>
-              <span className="featured-kicker">UN DULCE CAPRICHO</span>
-              <span className="featured-title">Pastelería</span>
-              <span className="featured-description">
-                Delicias dulces para compartir o regalarte un momento.
-              </span>
-              <span className="featured-link">Explorar pastelería ↗</span>
+              <span className="featured-icon">🍰</span>
+              <h3>Pastelería</h3>
+              <p>
+                Deliciosos acompañamientos para disfrutar junto a tu café.
+              </p>
+              <span className="featured-link">Ver productos →</span>
             </button>
           </div>
         </section>
 
+        {/* CATÁLOGO FUNCIONAL */}
         <section className="menu-section" id="menu">
           <div className="menu-intro">
             <div>
-              <span className="eyebrow">
-                <span className="eyebrow-line" />
-                NUESTROS FAVORITOS
-              </span>
-              <h2>
-                La carta
-                <br />
-                <em>de Coffee Flower.</em>
-              </h2>
+              <span className="eyebrow">DESCUBRE TU FAVORITO</span>
+              <h2>Nuestra carta</h2>
             </div>
-
-            <p>
-              Escoge tus productos favoritos y prepara tu próxima pausa
-              dulce.
-            </p>
+            <p>Elige tus productos favoritos y agrégalos al carrito.</p>
           </div>
 
           <div className="menu-toolbar">
@@ -538,26 +425,14 @@ export default function App() {
             </div>
 
             <span className="catalog-count">
-              {loading
-                ? "ACTUALIZANDO CARTA…"
-                : `${filtered.length.toString().padStart(2, "0")} PRODUCTOS`}
+              {loading ? "CARGANDO…" : `${filtered.length} PRODUCTOS`}
             </span>
           </div>
 
-          {!API_URL && (
-            <p className="demo-note">
-              Estás viendo productos de demostración. Configura VITE_API_URL
-              para cargar el catálogo del backend.
-            </p>
-          )}
-
           <div className="products">
-            {filtered.map((product, index) => (
+            {filtered.map((product) => (
               <article className="product" key={product.id}>
-                <div className={`product-art art-${index % 4}`}>
-                  <span className="product-index">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+                <div className="product-art">
                   <span className="product-emoji">
                     {product.emoji ??
                       (normalizarCategoria(product.categoria) === "Café"
@@ -570,68 +445,34 @@ export default function App() {
                   <button
                     className="add"
                     onClick={() => add(product.id)}
-                    aria-label={`Agregar ${product.nombre} al carrito`}
+                    aria-label={`Agregar ${product.nombre}`}
                   >
                     +
                   </button>
                 </div>
 
                 <div className="product-info">
-                  <div>
-                    <h3>{product.nombre}</h3>
-                    <p>{product.descripcion}</p>
+                  <h3>{product.nombre}</h3>
+                  <p>{product.descripcion}</p>
+                  <div className="product-price">
+                    <strong>{money(product.precio)}</strong>
+                    <button
+                      className="small-add"
+                      onClick={() => add(product.id)}
+                    >
+                      Agregar +
+                    </button>
                   </div>
-                  <strong>{money(product.precio)}</strong>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="story" id="nosotros">
-          <div className="story-art">
-            <span>✿</span>
-            <b>
-              UN RINCÓN
-              <br />
-              PARA TI
-            </b>
-            <i>CF.</i>
-          </div>
-
-          <div className="story-copy">
-            <span className="eyebrow">
-              <span className="eyebrow-line" />
-              NUESTRA ESENCIA
-            </span>
-            <h2>
-              El sabor que
-              <br />
-              <em>te hace sentir en casa.</em>
-            </h2>
-            <p>
-              En Coffee Flower creemos en las pausas bonitas: una taza
-              recién preparada, algo dulce para compartir y la alegría
-              de regalarte un momento solo para ti.
-            </p>
-            <a href="#menu" className="text-link">
-              Descubre nuestros favoritos <span>↗</span>
-            </a>
-          </div>
-
-          <div className="story-quote">
-            “<span>Los días saben mejor</span>
-            <br />
-            con algo dulce.”
-          </div>
-        </section>
-
+        {/* CARRITO */}
         <section className="checkout" id="pedido">
           <div className="checkout-heading">
-            <span className="eyebrow">
-              <span className="eyebrow-line" />
-              TU SELECCIÓN
-            </span>
+            <span className="eyebrow">TU SELECCIÓN</span>
             <h2>
               Tu pausa,
               <br />
@@ -639,7 +480,7 @@ export default function App() {
             </h2>
             <p>
               {cartCount
-                ? `${cartCount} producto(s) en tu carrito`
+                ? `${cartCount} producto(s) en tu carrito.`
                 : "Agrega tus favoritos y prepara tu próximo antojo."}
             </p>
 
@@ -648,7 +489,7 @@ export default function App() {
                 {products
                   .filter((product) => cart[String(product.id)])
                   .map((product) => (
-                    <div key={product.id} className="cart-item">
+                    <div className="cart-item" key={product.id}>
                       <span>
                         {product.emoji ?? "☕"} {product.nombre} ×{" "}
                         {cart[String(product.id)]}
@@ -656,7 +497,6 @@ export default function App() {
                       <button
                         className="remove-item"
                         onClick={() => remove(product.id)}
-                        aria-label={`Quitar una unidad de ${product.nombre}`}
                       >
                         −
                       </button>
@@ -680,22 +520,16 @@ export default function App() {
               className="button button-dark checkout-button"
               onClick={() => void checkout()}
             >
-              Continuar pedido <span>↗</span>
+              Continuar pedido ↗
             </button>
             <small>Un pequeño gusto, una gran sonrisa.</small>
           </div>
         </section>
 
-        {(auth.error || message) && (
+        {message && (
           <div className="notice" role="status">
-            <span>
-              {message ||
-                "No se pudo verificar la sesión. Intenta iniciar sesión nuevamente."}
-            </span>
-            <button
-              onClick={() => setMessage("")}
-              aria-label="Cerrar mensaje"
-            >
+            <span>{message}</span>
+            <button onClick={() => setMessage("")} aria-label="Cerrar">
               ×
             </button>
           </div>
@@ -704,11 +538,8 @@ export default function App() {
 
       <footer>
         <a className="brand footer-brand" href="#inicio">
-          <span className="brand-icon">✿</span>
-          <span className="brand-name">
-            coffee flower
-            <small>CAFÉ · PASTELERÍA</small>
-          </span>
+          <span className="brand-icon">☕</span>
+          <span className="brand-name">Coffee Flower</span>
         </a>
         <span>Una pausa bonita, todos los días.</span>
         <span>© {new Date().getFullYear()} Coffee Flower</span>
