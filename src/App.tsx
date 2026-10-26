@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 
@@ -6,68 +5,29 @@ import Home from "./pages/Home";
 import Productos, { type Product } from "./pages/Productos";
 import Categorias from "./pages/Categorias";
 import Cart from "./pages/Cart";
+import Dashboard from "./pages/Dashboard";
+import Colaborador from "./pages/Colaborador";
 
 const API_URL = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.replace(/\/$/, "") ?? "";
 
 const REDIRECT_URI = "https://coffee-flower-frontend.vercel.app/";
+
 const COGNITO_DOMAIN =
   "https://us-east-1qhhxge8jy.auth.us-east-1.amazoncognito.com";
+
 const COGNITO_CLIENT_ID = "3g344v2pmve6jr3vvua4k71cla";
 
-type Page = "inicio" | "productos" | "categorias" | "carrito";
+type Role = "Administrador" | "Colaborador" | "Cliente";
 
-const DEMO_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    nombre: "Latte Vainilla",
-    descripcion: "Espresso, leche cremosa y un toque de vainilla.",
-    precio: 3490,
-    categoria: "Café",
-    emoji: "☕",
-  },
-  {
-    id: 2,
-    nombre: "Cappuccino",
-    descripcion: "Espresso intenso con espuma de leche.",
-    precio: 2990,
-    categoria: "Café",
-    emoji: "🥛",
-  },
-  {
-    id: 3,
-    nombre: "Croissant de mantequilla",
-    descripcion: "Hojaldre dorado, horneado cada mañana.",
-    precio: 2290,
-    categoria: "Pastelería",
-    emoji: "🥐",
-  },
-  {
-    id: 4,
-    nombre: "Torta de chocolate",
-    descripcion: "Bizcocho húmedo con ganache de chocolate.",
-    precio: 3990,
-    categoria: "Pastelería",
-    emoji: "🍰",
-  },
-  {
-    id: 5,
-    nombre: "Cold Brew",
-    descripcion: "Café de extracción lenta, suave y refrescante.",
-    precio: 3290,
-    categoria: "Café",
-    emoji: "🧋",
-  },
-  {
-    id: 6,
-    nombre: "Roll de canela",
-    descripcion: "Masa suave, canela y glaseado delicado.",
-    precio: 2590,
-    categoria: "Pastelería",
-    emoji: "🥮",
-  },
-];
+type Page =
+  | "inicio"
+  | "productos"
+  | "categorias"
+  | "carrito"
+  | "dashboard"
+  | "colaborador";
 
 function obtenerCategoria(product: Product): string {
   const categoria = String(product.categoria ?? "")
@@ -139,18 +99,26 @@ export default function App() {
   const auth = useAuth();
 
   const [activePage, setActivePage] = useState<Page>("inicio");
-  const [products, setProducts] = useState<Product[]>(DEMO_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState("Todos");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [sendingOrder, setSendingOrder] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const groups =
-    (auth.user?.profile?.["cognito:groups"] as string[] | undefined) ?? [];
+  // Obtener grupos de Cognito.
+  const groupsValue = auth.user?.profile?.["cognito:groups"];
 
-  const role =
+  const groups: string[] = Array.isArray(groupsValue)
+    ? groupsValue.filter(
+        (group): group is string => typeof group === "string"
+      )
+    : typeof groupsValue === "string"
+      ? [groupsValue]
+      : [];
+
+  const role: Role =
     groups.includes("Administrador") || groups.includes("Admin")
       ? "Administrador"
       : groups.includes("Colaborador")
@@ -163,6 +131,24 @@ export default function App() {
       ""
   );
 
+  // Redirigir al panel correspondiente cuando se verifica la sesión.
+  useEffect(() => {
+    if (auth.isLoading) return;
+
+    if (!auth.isAuthenticated) {
+      setActivePage("inicio");
+      return;
+    }
+
+    if (role === "Administrador") {
+      setActivePage("dashboard");
+    } else if (role === "Colaborador") {
+      setActivePage("colaborador");
+    } else {
+      setActivePage("inicio");
+    }
+  }, [auth.isLoading, auth.isAuthenticated, role]);
+
   const authHeaders = useCallback((): HeadersInit => {
     const token = auth.user?.access_token;
 
@@ -172,19 +158,21 @@ export default function App() {
     };
   }, [auth.user]);
 
-  // Cargar catálogo desde API Gateway.
+  // Cargar el catálogo exclusivamente desde API Gateway.
   useEffect(() => {
-    if (!API_URL) {
-      setMessage(
-        "Falta configurar VITE_API_URL. Se muestran productos de demostración."
-      );
-      return;
-    }
-
     let cancelled = false;
 
     async function cargarProductos() {
       setLoading(true);
+
+      if (!API_URL) {
+        setProducts([]);
+        setMessage(
+          "Falta configurar VITE_API_URL en las variables de entorno."
+        );
+        setLoading(false);
+        return;
+      }
 
       try {
         const response = await fetch(`${API_URL}/api/productos`);
@@ -195,30 +183,35 @@ export default function App() {
 
         const data: Product[] = await response.json();
 
-        if (!cancelled && Array.isArray(data) && data.length > 0) {
-          const productosPreparados = data.map((product) => {
-            const categoria = obtenerCategoria(product);
-
-            return {
-              ...product,
-              categoria,
-              emoji: obtenerEmoji(product, categoria),
-            };
-          });
-
-          setProducts(productosPreparados);
-          setMessage("");
-        } else if (!cancelled && Array.isArray(data) && data.length === 0) {
-          setProducts([]);
-          setMessage("Todavía no hay productos registrados en el catálogo.");
+        if (!Array.isArray(data)) {
+          throw new Error("La respuesta del servidor no es una lista de productos.");
         }
+
+        if (cancelled) return;
+
+        const productosPreparados = data.map((product) => {
+          const categoria = obtenerCategoria(product);
+
+          return {
+            ...product,
+            categoria,
+            emoji: obtenerEmoji(product, categoria),
+          };
+        });
+
+        setProducts(productosPreparados);
+        setMessage(
+          productosPreparados.length === 0
+            ? "Todavía no hay productos registrados en el catálogo."
+            : ""
+        );
       } catch (error) {
         if (!cancelled) {
           console.error("Error al cargar productos:", error);
-
+          setProducts([]);
           setMessage(
-            `No se pudo cargar el catálogo. Se muestran productos de demostración. ${
-              error instanceof Error ? error.message : ""
+            `No se pudieron cargar los productos desde el servidor. ${
+              error instanceof Error ? error.message : "Error de conexión."
             }`
           );
         }
@@ -248,17 +241,19 @@ export default function App() {
     0
   );
 
-  // Iniciar sesión con Cognito.
+  // Inicio de sesión con Cognito.
   const login = () => {
     setMessage("");
 
     void auth.signinRedirect().catch((error) => {
       console.error("Error al iniciar sesión:", error);
-      setMessage("No se pudo iniciar sesión. Revisa la configuración de Cognito.");
+      setMessage(
+        "No se pudo iniciar sesión. Revisa la configuración de Cognito."
+      );
     });
   };
 
-  // Cerrar sesión local y salir de la sesión administrada de Cognito.
+  // Cierre de sesión local y de Cognito.
   const logout = async () => {
     if (loggingOut) return;
 
@@ -269,7 +264,6 @@ export default function App() {
       await auth.removeUser();
 
       const logoutUrl = new URL(`${COGNITO_DOMAIN}/logout`);
-
       logoutUrl.searchParams.set("client_id", COGNITO_CLIENT_ID);
       logoutUrl.searchParams.set("logout_uri", REDIRECT_URI);
 
@@ -313,15 +307,30 @@ export default function App() {
   };
 
   const abrirPagina = (page: Page) => {
+    if (page === "dashboard" && role !== "Administrador") {
+      setMessage("No tienes permiso para acceder al panel de administración.");
+      return;
+    }
+
+    if (page === "colaborador" && role !== "Colaborador") {
+      setMessage("No tienes permiso para acceder al panel de colaborador.");
+      return;
+    }
+
     setActivePage(page);
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Enviar pedido al backend.
+  // Enviar pedidos al backend.
   async function checkout() {
     if (!auth.isAuthenticated) {
       setMessage("Inicia sesión para continuar con tu pedido.");
+      return;
+    }
+
+    if (role !== "Cliente") {
+      setMessage("La compra está disponible para cuentas de Cliente.");
       return;
     }
 
@@ -364,7 +373,6 @@ export default function App() {
       setMessage("¡Tu pedido se envió correctamente!");
     } catch (error) {
       console.error("Error al enviar pedido:", error);
-
       setMessage(
         `No se pudo enviar el pedido: ${
           error instanceof Error ? error.message : "error de red"
@@ -375,6 +383,17 @@ export default function App() {
     }
   }
 
+  if (auth.isLoading) {
+    return (
+      <div className="app">
+        <main className="role-dashboard">
+          <h2>☕ Coffee Flower</h2>
+          <p>Verificando tu sesión...</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -383,7 +402,14 @@ export default function App() {
           href="#inicio"
           onClick={(event) => {
             event.preventDefault();
-            abrirPagina("inicio");
+
+            if (role === "Administrador") {
+              abrirPagina("dashboard");
+            } else if (role === "Colaborador") {
+              abrirPagina("colaborador");
+            } else {
+              abrirPagina("inicio");
+            }
           }}
         >
           <span className="brand-icon">☕</span>
@@ -391,55 +417,85 @@ export default function App() {
         </a>
 
         <nav aria-label="Navegación principal">
-          <a
-            href="#inicio"
-            aria-current={activePage === "inicio" ? "page" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              abrirPagina("inicio");
-            }}
-          >
-            Inicio
-          </a>
+          {role === "Cliente" && (
+            <>
+              <a
+                href="#inicio"
+                aria-current={activePage === "inicio" ? "page" : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  abrirPagina("inicio");
+                }}
+              >
+                Inicio
+              </a>
 
-          <a
-            href="#productos"
-            aria-current={activePage === "productos" ? "page" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              abrirProductos("Todos");
-            }}
-          >
-            Productos
-          </a>
+              <a
+                href="#productos"
+                aria-current={activePage === "productos" ? "page" : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  abrirProductos("Todos");
+                }}
+              >
+                Productos
+              </a>
 
-          <a
-            href="#categorias"
-            aria-current={activePage === "categorias" ? "page" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              abrirPagina("categorias");
-            }}
-          >
-            Categorías
-          </a>
+              <a
+                href="#categorias"
+                aria-current={activePage === "categorias" ? "page" : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  abrirPagina("categorias");
+                }}
+              >
+                Categorías
+              </a>
 
-          <a
-            href="#carrito"
-            aria-current={activePage === "carrito" ? "page" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              abrirPagina("carrito");
-            }}
-          >
-            Carrito ({cartCount})
-          </a>
+              <a
+                href="#carrito"
+                aria-current={activePage === "carrito" ? "page" : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  abrirPagina("carrito");
+                }}
+              >
+                Carrito ({cartCount})
+              </a>
+            </>
+          )}
+
+          {role === "Administrador" && (
+            <a
+              href="#dashboard"
+              aria-current={activePage === "dashboard" ? "page" : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                abrirPagina("dashboard");
+              }}
+            >
+              Panel de administración
+            </a>
+          )}
+
+          {role === "Colaborador" && (
+            <a
+              href="#colaborador"
+              aria-current={
+                activePage === "colaborador" ? "page" : undefined
+              }
+              onClick={(event) => {
+                event.preventDefault();
+                abrirPagina("colaborador");
+              }}
+            >
+              Panel de colaborador
+            </a>
+          )}
         </nav>
 
         <div className="account">
-          {auth.isLoading ? (
-            <span>Verificando…</span>
-          ) : auth.isAuthenticated ? (
+          {auth.isAuthenticated ? (
             <>
               <span className="role">{role}</span>
 
@@ -464,7 +520,7 @@ export default function App() {
         </div>
       </header>
 
-      {activePage === "inicio" && (
+      {role === "Cliente" && activePage === "inicio" && (
         <Home
           onViewProducts={() => abrirProductos("Todos")}
           onViewCategories={() => abrirPagina("categorias")}
@@ -472,7 +528,7 @@ export default function App() {
         />
       )}
 
-      {activePage === "productos" && (
+      {role === "Cliente" && activePage === "productos" && (
         <Productos
           products={products}
           category={category}
@@ -482,17 +538,31 @@ export default function App() {
         />
       )}
 
-      {activePage === "categorias" && (
+      {role === "Cliente" && activePage === "categorias" && (
         <Categorias onSelectCategory={abrirProductos} />
       )}
 
-      {activePage === "carrito" && (
+      {role === "Cliente" && activePage === "carrito" && (
         <Cart
           products={products}
           cart={cart}
           onAdd={add}
           onRemove={remove}
           onCheckout={() => void checkout()}
+        />
+      )}
+
+      {role === "Administrador" && activePage === "dashboard" && (
+        <Dashboard
+          email={email}
+          onBack={() => abrirPagina("dashboard")}
+        />
+      )}
+
+      {role === "Colaborador" && activePage === "colaborador" && (
+        <Colaborador
+          email={email}
+          onBack={() => abrirPagina("colaborador")}
         />
       )}
 
@@ -521,7 +591,14 @@ export default function App() {
           href="#inicio"
           onClick={(event) => {
             event.preventDefault();
-            abrirPagina("inicio");
+
+            if (role === "Administrador") {
+              abrirPagina("dashboard");
+            } else if (role === "Colaborador") {
+              abrirPagina("colaborador");
+            } else {
+              abrirPagina("inicio");
+            }
           }}
         >
           <span className="brand-icon">☕</span>
