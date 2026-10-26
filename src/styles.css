@@ -1217,3 +1217,151 @@ footer {
     font-size: 28px;
   }
 }
+.role-dashboard {
+  min-height: 75vh;
+  padding: 40px 6%;
+  background: #fff8f4;
+  color: #4b2d27;
+}
+
+.role-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #ecd8cf;
+}
+
+.role-dashboard-header h1 {
+  margin: 0 0 8px;
+}
+
+.role-dashboard-header p {
+  margin: 0;
+  color: #98604a;
+}
+
+.role-badge {
+  padding: 10px 18px;
+  border: 1px solid #b65b38;
+  border-radius: 24px;
+  color: #9b492d;
+  font-weight: 600;
+}
+
+.role-dashboard-content {
+  max-width: 1000px;
+  margin: 40px auto;
+}
+
+.role-dashboard-menu {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 28px 0;
+}
+
+.role-dashboard-menu button,
+.role-back-button {
+  padding: 12px 20px;
+  border: 1px solid #a45131;
+  border-radius: 24px;
+  background: white;
+  color: #87452d;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.role-dashboard-menu button:hover,
+.role-back-button:hover {
+  background: #f7e6dd;
+}
+
+.role-panel-card {
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #efdcd3;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 6px 20px rgba(75, 45, 39, 0.05);
+}
+
+.role-panel-card h3 {
+  margin-top: 0;
+}
+/* Paneles de roles Coffee Flower */
+
+.role-dashboard {
+  min-height: 65vh;
+  padding: 40px 6%;
+  background: #fff8f4;
+  color: #4b2d27;
+}
+
+.role-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #ecd8cf;
+}
+
+.role-dashboard-header h1 {
+  margin: 0 0 8px;
+  color: #4b2d27;
+}
+
+.role-dashboard-header p {
+  margin: 0;
+  color: #98604a;
+}
+
+.role-badge {
+  padding: 10px 18px;
+  border: 1px solid #b65b38;
+  border-radius: 24px;
+  color: #9b492d;
+  font-weight: 600;
+}
+
+.role-dashboard-content {
+  max-width: 1000px;
+  margin: 40px auto;
+}
+
+.role-dashboard-content h2 {
+  margin-bottom: 12px;
+  color: #4b2d27;
+}
+
+.role-panel-card {
+  margin: 28px 0;
+  padding: 28px;
+  border: 1px solid #efdcd3;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(75, 45, 39, 0.06);
+}
+
+.role-panel-card h3 {
+  margin-top: 0;
+  color: #87452d;
+}
+
+.role-back-button {
+  padding: 12px 22px;
+  border: 1px solid #a45131;
+  border-radius: 28px;
+  background: #934f32;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.role-back-button:hover {
+  background: #713b26;
+}
