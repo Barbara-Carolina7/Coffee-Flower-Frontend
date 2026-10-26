@@ -6,77 +6,67 @@ import Productos, { type Product } from "./pages/Productos";
 import Categorias from "./pages/Categorias";
 import Cart from "./pages/Cart";
 
-const API_URL = (
-  import.meta.env.VITE_API_URL as string | undefined
-)?.replace(/\/$/, "") ?? "";
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined)
+  ?.replace(/\/$/, "") ?? "";
 
 const REDIRECT_URI = "https://coffee-flower-frontend.vercel.app/";
 
 type Page = "inicio" | "productos" | "categorias" | "carrito";
 
 const DEMO_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    nombre: "Latte Vainilla",
-    descripcion: "Espresso, leche cremosa y un toque de vainilla.",
-    precio: 3490,
-    categoria: "Café",
-    emoji: "☕",
-  },
-  {
-    id: 2,
-    nombre: "Cappuccino",
-    descripcion: "Espresso intenso con espuma de leche.",
-    precio: 2990,
-    categoria: "Café",
-    emoji: "🥛",
-  },
-  {
-    id: 3,
-    nombre: "Croissant de mantequilla",
-    descripcion: "Hojaldre dorado, horneado cada mañana.",
-    precio: 2290,
-    categoria: "Pastelería",
-    emoji: "🥐",
-  },
-  {
-    id: 4,
-    nombre: "Torta de chocolate",
-    descripcion: "Bizcocho húmedo con ganache de chocolate.",
-    precio: 3990,
-    categoria: "Pastelería",
-    emoji: "🍰",
-  },
-  {
-    id: 5,
-    nombre: "Cold Brew",
-    descripcion: "Café de extracción lenta, suave y refrescante.",
-    precio: 3290,
-    categoria: "Café",
-    emoji: "🧋",
-  },
-  {
-    id: 6,
-    nombre: "Roll de canela",
-    descripcion: "Masa suave, canela y glaseado delicado.",
-    precio: 2590,
-    categoria: "Pastelería",
-    emoji: "🥮",
-  },
+  { id: 1, nombre: "Latte Vainilla", descripcion: "Espresso, leche cremosa y un toque de vainilla.", precio: 3490, categoria: "Café", emoji: "☕" },
+  { id: 2, nombre: "Cappuccino", descripcion: "Espresso intenso con espuma de leche.", precio: 2990, categoria: "Café", emoji: "🥛" },
+  { id: 3, nombre: "Croissant de mantequilla", descripcion: "Hojaldre dorado, horneado cada mañana.", precio: 2290, categoria: "Pastelería", emoji: "🥐" },
+  { id: 4, nombre: "Torta de chocolate", descripcion: "Bizcocho húmedo con ganache de chocolate.", precio: 3990, categoria: "Pastelería", emoji: "🍰" },
+  { id: 5, nombre: "Cold Brew", descripcion: "Café de extracción lenta, suave y refrescante.", precio: 3290, categoria: "Café", emoji: "🧋" },
+  { id: 6, nombre: "Roll de canela", descripcion: "Masa suave, canela y glaseado delicado.", precio: 2590, categoria: "Pastelería", emoji: "🥮" },
 ];
 
-function normalizarCategoria(categoria: string): string {
-  const value = categoria.toLowerCase().trim();
+function obtenerCategoria(product: Product): string {
+  const categoria = String(product.categoria ?? "").toLowerCase().trim();
+  const nombre = String(product.nombre ?? "").toLowerCase().trim();
 
-  if (value.includes("pastel") || value.includes("dulce")) {
+  const palabrasPasteleria = [
+    "cheesecake", "torta", "zanahoria", "pie de limón", "pie de limon",
+    "brownie", "muffin", "croissant", "roll de canela", "kuchen",
+    "pastel", "galleta", "queque", "factura", "berlín", "berlin",
+  ];
+
+  if (
+    categoria.includes("pastel") ||
+    categoria.includes("dulce") ||
+    categoria.includes("repostería") ||
+    categoria.includes("reposteria") ||
+    palabrasPasteleria.some((palabra) => nombre.includes(palabra))
+  ) {
     return "Pastelería";
   }
 
-  if (value.includes("café") || value.includes("cafe")) {
+  if (
+    categoria.includes("café") ||
+    categoria.includes("cafe") ||
+    nombre.includes("espresso") ||
+    nombre.includes("americano") ||
+    nombre.includes("cappuccino") ||
+    nombre.includes("latte") ||
+    nombre.includes("mocha") ||
+    nombre.includes("moka") ||
+    nombre.includes("frappé") ||
+    nombre.includes("frappe") ||
+    nombre.includes("cold brew") ||
+    nombre.includes("chocolate caliente")
+  ) {
     return "Café";
   }
 
-  return categoria;
+  // Para productos nuevos que no coincidan con los nombres anteriores,
+  // respetamos la categoría de la API si existe; si no, usamos Café.
+  return product.categoria?.trim() || "Café";
+}
+
+function obtenerEmoji(product: Product, categoria: string): string {
+  if (product.emoji?.trim()) return product.emoji;
+  return categoria === "Café" ? "☕" : "🍰";
 }
 
 export default function App() {
@@ -132,17 +122,20 @@ export default function App() {
 
         const data: Product[] = await response.json();
         if (!cancelled && Array.isArray(data) && data.length > 0) {
-          setProducts(
-            data.map((product) => {
-              const categoria = normalizarCategoria(product.categoria ?? "");
-              return {
-                ...product,
-                categoria,
-                emoji: product.emoji ?? (categoria === "Café" ? "☕" : "🍰"),
-              };
-            })
-          );
+          const productosPreparados = data.map((product) => {
+            const categoria = obtenerCategoria(product);
+            return {
+              ...product,
+              categoria,
+              emoji: obtenerEmoji(product, categoria),
+            };
+          });
+
+          setProducts(productosPreparados);
           setMessage("");
+        } else if (!cancelled && Array.isArray(data) && data.length === 0) {
+          setProducts([]);
+          setMessage("Todavía no hay productos registrados en el catálogo.");
         }
       } catch (error) {
         if (!cancelled) {
