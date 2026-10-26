@@ -1,13 +1,13 @@
 
-import React, { useMemo } from "react";
+import React from "react";
 
 export type CartProduct = {
   id: string | number;
   nombre: string;
   descripcion: string;
   precio: number;
-  categoria: string;
-  emoji?: string;
+  categoria?: string | null;
+  emoji?: string | null;
 };
 
 type CartProps = {
@@ -25,121 +25,192 @@ export default function Cart({
   onRemove,
   onCheckout,
 }: CartProps) {
-  const items = useMemo(
-    () =>
-      products.filter(
-        (product) => (cart[String(product.id)] ?? 0) > 0
-      ),
-    [products, cart]
-  );
-
-  const cartCount = items.reduce(
-    (total, product) => total + (cart[String(product.id)] ?? 0),
-    0
-  );
-
-  const total = items.reduce(
-    (sum, product) =>
-      sum + product.precio * (cart[String(product.id)] ?? 0),
-    0
-  );
-
   const money = (amount: number) =>
-    amount.toLocaleString("es-CL", {
+    Number(amount).toLocaleString("es-CL", {
       style: "currency",
       currency: "CLP",
       maximumFractionDigits: 0,
     });
 
+  const productosEnCarrito = products.filter(
+    (product) => (cart[String(product.id)] ?? 0) > 0
+  );
+
+  const cantidadTotal = productosEnCarrito.reduce(
+    (total, product) => total + (cart[String(product.id)] ?? 0),
+    0
+  );
+
+  const total = productosEnCarrito.reduce(
+    (sum, product) =>
+      sum +
+      Number(product.precio) * (cart[String(product.id)] ?? 0),
+    0
+  );
+
+  const obtenerEmoji = (product: CartProduct): string => {
+    if (product.emoji?.trim()) {
+      return product.emoji;
+    }
+
+    const categoria = (product.categoria ?? "")
+      .toLowerCase()
+      .trim();
+
+    if (categoria.includes("café") || categoria.includes("cafe")) {
+      return "☕";
+    }
+
+    if (
+      categoria.includes("pastel") ||
+      categoria.includes("dulce") ||
+      categoria.includes("repostería") ||
+      categoria.includes("reposteria")
+    ) {
+      return "🍰";
+    }
+
+    return "🛍️";
+  };
+
   return (
     <main className="cart-page">
-      <section className="checkout" id="pedido">
-        <div className="section-heading">
-          <span className="eyebrow">TU SELECCIÓN</span>
-          <h1>Mi carrito</h1>
+      <section className="cart-section">
+        <div className="menu-intro">
+          <div>
+            <span className="eyebrow">COFFEE FLOWER</span>
+            <h1>Tu carrito</h1>
+          </div>
+
           <p>
-            Revisa tus cafés y pastelería antes de confirmar tu pedido.
+            Revisa tus productos favoritos antes de finalizar
+            tu pedido.
           </p>
         </div>
 
-        {items.length === 0 ? (
-          <div className="empty-cart">
-            <span className="cart-empty-icon" aria-hidden="true">
-              🛍️
+        {productosEnCarrito.length === 0 ? (
+          <div className="empty-state">
+            <span
+              style={{ fontSize: "3rem" }}
+              role="img"
+              aria-label="Taza de café"
+            >
+              ☕
             </span>
+
             <h2>Tu carrito está vacío</h2>
-            <p>Agrega tus productos favoritos de Coffee Flower.</p>
+
+            <p>
+              Todavía no has agregado cafés ni productos de
+              pastelería.
+            </p>
           </div>
         ) : (
           <>
-            <div className="cart-list">
-              {items.map((product) => {
-                const quantity = cart[String(product.id)];
+            <div className="cart-layout">
+              <div className="cart-items">
+                {productosEnCarrito.map((product) => {
+                  const cantidad =
+                    cart[String(product.id)] ?? 0;
 
-                return (
-                  <article className="cart-item" key={product.id}>
-                    <div className="cart-product-icon">
-                      <span aria-hidden="true">
-                        {product.emoji ?? "☕"}
-                      </span>
-                    </div>
-
-                    <div className="cart-item-info">
-                      <h3>{product.nombre}</h3>
-                      <p>{product.descripcion}</p>
-                      <strong>{money(product.precio)}</strong>
-                    </div>
-
-                    <div className="cart-quantity">
-                      <button
-                        type="button"
-                        onClick={() => onRemove(product.id)}
-                        aria-label={`Disminuir ${product.nombre}`}
+                  return (
+                    <article
+                      className="cart-item"
+                      key={product.id}
+                    >
+                      <div
+                        className="product-art cart-product-art"
                       >
-                        −
-                      </button>
+                        <span
+                          className="product-emoji"
+                          role="img"
+                          aria-label={
+                            product.categoria ?? "Producto"
+                          }
+                        >
+                          {obtenerEmoji(product)}
+                        </span>
+                      </div>
 
-                      <span aria-live="polite">{quantity}</span>
+                      <div className="cart-item-info">
+                        <h3>{product.nombre}</h3>
 
-                      <button
-                        type="button"
-                        onClick={() => onAdd(product.id)}
-                        aria-label={`Aumentar ${product.nombre}`}
-                      >
-                        +
-                      </button>
-                    </div>
+                        <p>{product.descripcion}</p>
 
-                    <strong className="cart-subtotal">
-                      {money(product.precio * quantity)}
-                    </strong>
-                  </article>
-                );
-              })}
-            </div>
+                        <strong>
+                          {money(Number(product.precio))}
+                        </strong>
 
-            <div className="cart-summary">
-              <div className="checkout-row">
-                <span>Cantidad de productos</span>
-                <strong>{cartCount}</strong>
+                        <div className="cart-quantity">
+                          <button
+                            type="button"
+                            onClick={() => onRemove(product.id)}
+                            aria-label={`Quitar una unidad de ${product.nombre}`}
+                          >
+                            −
+                          </button>
+
+                          <span aria-live="polite">
+                            {cantidad}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => onAdd(product.id)}
+                            aria-label={`Agregar una unidad de ${product.nombre}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="cart-item-subtotal">
+                        <strong>
+                          {money(
+                            Number(product.precio) * cantidad
+                          )}
+                        </strong>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
 
-              <div className="checkout-row checkout-total">
-                <span>Total del pedido</span>
-                <strong>{money(total)}</strong>
-              </div>
+              <aside className="cart-summary">
+                <span className="eyebrow">
+                  RESUMEN DEL PEDIDO
+                </span>
 
-              <button
-                type="button"
-                className="button button-dark checkout-button"
-                onClick={onCheckout}
-              >
-                Continuar pedido →
-              </button>
+                <h2>Tu compra</h2>
 
-              <p className="text-muted">
-                Gracias por elegir Coffee Flower 🌸
-              </p>
+                <div className="cart-summary-row">
+                  <span>Productos</span>
+                  <span>{cantidadTotal}</span>
+                </div>
+
+                <div className="cart-summary-row">
+                  <span>Subtotal</span>
+                  <span>{money(total)}</span>
+                </div>
+
+                <div className="cart-summary-total">
+                  <span>Total</span>
+                  <strong>{money(total)}</strong>
+                </div>
+
+                <button
+                  type="button"
+                  className="button button-dark cart-checkout"
+                  onClick={onCheckout}
+                  disabled={cantidadTotal === 0}
+                >
+                  Finalizar pedido
+                </button>
+
+                <p className="cart-summary-note">
+                  Gracias por elegir Coffee Flower.
+                </p>
+              </aside>
             </div>
           </>
         )}
