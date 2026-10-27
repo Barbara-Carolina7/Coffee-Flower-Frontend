@@ -1824,3 +1824,581 @@ footer {
     border: 0;
   }
 }
+
+/* ==========================================
+   COFFEE FLOWER — PANEL COLABORADOR
+   Diseño elegante inspirado en Administración
+========================================== */
+
+.role-dashboard {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 100vh;
+  background: #faf7f3;
+  color: #38271f;
+  font-family: inherit;
+}
+
+.role-dashboard-header {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 32px 24px;
+  background: #39271f;
+  color: #fffaf5;
+  border-right: 1px solid #51392c;
+}
+
+.role-dashboard-header h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.7px;
+  color: #fffaf5;
+}
+
+.role-dashboard-header p {
+  margin: 8px 0 0;
+  color: #d9c4b3;
+  font-size: 13px;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid #80644e;
+  border-radius: 999px;
+  background: #4a3428;
+  color: #f5dfc8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.role-dashboard-content {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 32px;
+  margin: 0 auto;
+}
+
+/* Bienvenida */
+
+.colaborador-welcome {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 34px;
+  margin-bottom: 26px;
+  border: 1px solid #eadbcd;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #f3e4d5, #fffaf5);
+  box-shadow: 0 8px 25px rgb(62 40 26 / 4%);
+}
+
+.colaborador-eyebrow {
+  color: #916b4d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+.colaborador-welcome h2 {
+  margin: 13px 0 10px;
+  color: #39271f;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -1px;
+}
+
+.colaborador-welcome p {
+  max-width: 620px;
+  color: #79675a;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.colaborador-coffee-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 100px;
+  height: 100px;
+  border: 1px solid #e5d0bc;
+  border-radius: 26px;
+  background: rgb(255 255 255 / 65%);
+  font-size: 52px;
+  box-shadow: 0 8px 25px rgb(62 40 26 / 5%);
+}
+
+/* Navegación del colaborador */
+
+.colaborador-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px;
+  margin-bottom: 24px;
+  border: 1px solid #eee3d9;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.colaborador-tabs button {
+  padding: 12px 19px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #79675a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.colaborador-tabs button:hover {
+  background: #f8f0e8;
+  color: #513727;
+}
+
+.colaborador-tabs button.active {
+  background: #68462f;
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(62 40 26 / 12%);
+}
+
+/* Tarjetas de estadísticas */
+
+.colaborador-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 17px;
+  margin-bottom: 26px;
+}
+
+.colaborador-stat-card {
+  min-width: 0;
+  padding: 23px;
+  border: 1px solid #eee3d9;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 5px 20px rgb(62 40 26 / 3%);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.colaborador-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgb(62 40 26 / 7%);
+}
+
+.colaborador-stat-card > span {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 13px;
+  background: #f5e9dd;
+  font-size: 23px;
+}
+
+.colaborador-stat-card p {
+  margin: 17px 0 7px;
+  color: #806f62;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.colaborador-stat-card strong {
+  display: block;
+  color: #39271f;
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -1px;
+}
+
+.colaborador-stat-card small {
+  display: block;
+  margin-top: 8px;
+  color: #a09286;
+  font-size: 11px;
+}
+
+/* Paneles y tablas */
+
+.role-panel-card.colaborador-panel {
+  padding: 26px;
+  margin-bottom: 25px;
+  border: 1px solid #eee3d9;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 5px 20px rgb(62 40 26 / 3%);
+}
+
+.colaborador-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.colaborador-section-heading h3 {
+  margin: 0 0 7px;
+  color: #39271f;
+  font-size: 19px;
+  letter-spacing: -0.4px;
+}
+
+.colaborador-section-heading p {
+  margin: 0;
+  color: #8a796d;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.colaborador-primary-button {
+  padding: 12px 17px;
+  border: 1px solid #68462f;
+  border-radius: 10px;
+  background: #68462f;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.colaborador-primary-button:hover {
+  background: #4d3325;
+}
+
+.colaborador-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #f0e7df;
+  border-radius: 12px;
+}
+
+.colaborador-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.colaborador-table th {
+  padding: 15px 17px;
+  background: #faf6f1;
+  color: #72533d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.colaborador-table td {
+  padding: 16px 17px;
+  border-top: 1px solid #f1e9e2;
+  color: #5d4a3e;
+  vertical-align: middle;
+}
+
+.colaborador-table tbody tr {
+  transition: background 150ms ease;
+}
+
+.colaborador-table tbody tr:hover {
+  background: #fffcf9;
+}
+
+/* Estados de pedidos */
+
+.colaborador-status,
+.colaborador-stock {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.colaborador-status.pendiente {
+  background: #fff1d9;
+  color: #8a5b12;
+}
+
+.colaborador-status.preparando {
+  background: #e9efff;
+  color: #36549b;
+}
+
+.colaborador-status.listo {
+  background: #e3f4e8;
+  color: #27663b;
+}
+
+.colaborador-status.entregado {
+  background: #f0e7f8;
+  color: #704a91;
+}
+
+.colaborador-stock {
+  background: #e3f4e8;
+  color: #27663b;
+}
+
+.colaborador-stock.low {
+  background: #ffebe8;
+  color: #a43d31;
+}
+
+/* Buscadores y filtros */
+
+.colaborador-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(190px, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.colaborador-filters input,
+.colaborador-filters select,
+.colaborador-order-bottom select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #e7d9cc;
+  border-radius: 10px;
+  outline: none;
+  background: #fffdfb;
+  color: #39271f;
+  font: inherit;
+  font-size: 13px;
+}
+
+.colaborador-filters input:focus,
+.colaborador-filters select:focus,
+.colaborador-order-bottom select:focus {
+  border-color: #987353;
+  box-shadow: 0 0 0 3px rgb(152 115 83 / 12%);
+}
+
+/* Tarjetas de pedidos */
+
+.colaborador-orders-list {
+  display: grid;
+  gap: 15px;
+}
+
+.colaborador-order-card {
+  padding: 22px;
+  border: 1px solid #eee3d9;
+  border-radius: 15px;
+  background: #fffdfb;
+}
+
+.colaborador-order-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0e7df;
+}
+
+.colaborador-order-top strong {
+  color: #39271f;
+  font-size: 15px;
+}
+
+.colaborador-order-top p {
+  margin: 6px 0 0;
+  color: #968579;
+  font-size: 12px;
+}
+
+.colaborador-order-card > p {
+  color: #78675b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.colaborador-order-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.colaborador-order-bottom > strong {
+  color: #68462f;
+  font-size: 19px;
+}
+
+.colaborador-order-bottom label {
+  display: grid;
+  gap: 7px;
+  min-width: 180px;
+  color: #8a796d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Mensajes */
+
+.colaborador-notice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  margin: 0 0 20px;
+  border: 1px solid #d7e8d9;
+  border-radius: 12px;
+  background: #f1f8f1;
+  color: #285a32;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.colaborador-notice button {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.colaborador-demo-note {
+  margin: 17px 0 0;
+  color: #98887b;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.colaborador-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 22px 0;
+  border-top: 1px solid #eadfd5;
+  color: #968579;
+  font-size: 12px;
+}
+
+.role-back-button {
+  padding: 12px 17px;
+  border: 1px solid #d9c5b4;
+  border-radius: 10px;
+  background: #fff;
+  color: #68462f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.role-back-button:hover {
+  background: #f8f0e8;
+}
+
+/* Adaptación para tablet y móvil */
+
+@media (max-width: 1150px) {
+  .role-dashboard {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .role-dashboard-content {
+    padding: 24px;
+  }
+
+  .colaborador-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .role-dashboard {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .role-dashboard-header {
+    gap: 14px;
+    padding: 22px;
+    border-right: 0;
+  }
+
+  .role-dashboard-content {
+    padding: 17px;
+  }
+
+  .colaborador-welcome {
+    padding: 23px;
+  }
+
+  .colaborador-coffee-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 18px;
+    font-size: 34px;
+  }
+
+  .colaborador-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .colaborador-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .role-panel-card.colaborador-panel {
+    padding: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .colaborador-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .colaborador-welcome {
+    align-items: flex-start;
+  }
+
+  .colaborador-coffee-icon {
+    display: none;
+  }
+
+  .colaborador-tabs button {
+    flex: 1;
+    padding: 11px 9px;
+  }
+
+  .colaborador-order-bottom {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .colaborador-order-bottom label {
+    min-width: 0;
+  }
+}
