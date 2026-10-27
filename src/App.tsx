@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 
@@ -107,7 +108,7 @@ export default function App() {
   const [sendingOrder, setSendingOrder] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Obtener grupos de Cognito.
+  // Obtener los grupos del usuario autenticado en Cognito.
   const groupsValue = auth.user?.profile?.["cognito:groups"];
 
   const groups: string[] = Array.isArray(groupsValue)
@@ -131,7 +132,7 @@ export default function App() {
       ""
   );
 
-  // Redirigir al panel correspondiente cuando se verifica la sesión.
+  // Redirigir al panel correspondiente según el rol.
   useEffect(() => {
     if (auth.isLoading) return;
 
@@ -158,7 +159,7 @@ export default function App() {
     };
   }, [auth.user]);
 
-  // Cargar el catálogo exclusivamente desde API Gateway.
+  // Cargar productos desde API Gateway.
   useEffect(() => {
     let cancelled = false;
 
@@ -184,7 +185,9 @@ export default function App() {
         const data: Product[] = await response.json();
 
         if (!Array.isArray(data)) {
-          throw new Error("La respuesta del servidor no es una lista de productos.");
+          throw new Error(
+            "La respuesta del servidor no es una lista de productos."
+          );
         }
 
         if (cancelled) return;
@@ -209,9 +212,12 @@ export default function App() {
         if (!cancelled) {
           console.error("Error al cargar productos:", error);
           setProducts([]);
+
           setMessage(
             `No se pudieron cargar los productos desde el servidor. ${
-              error instanceof Error ? error.message : "Error de conexión."
+              error instanceof Error
+                ? error.message
+                : "Error de conexión."
             }`
           );
         }
@@ -241,7 +247,7 @@ export default function App() {
     0
   );
 
-  // Inicio de sesión con Cognito.
+  // Iniciar sesión mediante el proveedor OIDC configurado.
   const login = () => {
     setMessage("");
 
@@ -253,7 +259,7 @@ export default function App() {
     });
   };
 
-  // Cierre de sesión local y de Cognito.
+  // Cerrar sesión local y en Cognito.
   const logout = async () => {
     if (loggingOut) return;
 
@@ -271,7 +277,9 @@ export default function App() {
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       setLoggingOut(false);
-      setMessage("No se pudo cerrar la sesión. Inténtalo nuevamente.");
+      setMessage(
+        "No se pudo cerrar la sesión. Inténtalo nuevamente."
+      );
     }
   };
 
@@ -308,12 +316,16 @@ export default function App() {
 
   const abrirPagina = (page: Page) => {
     if (page === "dashboard" && role !== "Administrador") {
-      setMessage("No tienes permiso para acceder al panel de administración.");
+      setMessage(
+        "No tienes permiso para acceder al panel de administración."
+      );
       return;
     }
 
     if (page === "colaborador" && role !== "Colaborador") {
-      setMessage("No tienes permiso para acceder al panel de colaborador.");
+      setMessage(
+        "No tienes permiso para acceder al panel de colaborador."
+      );
       return;
     }
 
@@ -322,7 +334,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Enviar pedidos al backend.
+  // Enviar el pedido al backend.
   async function checkout() {
     if (!auth.isAuthenticated) {
       setMessage("Inicia sesión para continuar con tu pedido.");
@@ -330,7 +342,9 @@ export default function App() {
     }
 
     if (role !== "Cliente") {
-      setMessage("La compra está disponible para cuentas de Cliente.");
+      setMessage(
+        "La compra está disponible para cuentas de Cliente."
+      );
       return;
     }
 
@@ -340,7 +354,9 @@ export default function App() {
     }
 
     if (!API_URL) {
-      setMessage("Configura VITE_API_URL para enviar pedidos al backend.");
+      setMessage(
+        "Configura VITE_API_URL para enviar pedidos al backend."
+      );
       return;
     }
 
@@ -354,7 +370,9 @@ export default function App() {
         body: JSON.stringify({
           cliente: email,
           items: products
-            .filter((product) => (cart[String(product.id)] ?? 0) > 0)
+            .filter(
+              (product) => (cart[String(product.id)] ?? 0) > 0
+            )
             .map((product) => ({
               productoId: product.id,
               nombre: product.nombre,
@@ -373,6 +391,7 @@ export default function App() {
       setMessage("¡Tu pedido se envió correctamente!");
     } catch (error) {
       console.error("Error al enviar pedido:", error);
+
       setMessage(
         `No se pudo enviar el pedido: ${
           error instanceof Error ? error.message : "error de red"
@@ -421,7 +440,9 @@ export default function App() {
             <>
               <a
                 href="#inicio"
-                aria-current={activePage === "inicio" ? "page" : undefined}
+                aria-current={
+                  activePage === "inicio" ? "page" : undefined
+                }
                 onClick={(event) => {
                   event.preventDefault();
                   abrirPagina("inicio");
@@ -432,7 +453,9 @@ export default function App() {
 
               <a
                 href="#productos"
-                aria-current={activePage === "productos" ? "page" : undefined}
+                aria-current={
+                  activePage === "productos" ? "page" : undefined
+                }
                 onClick={(event) => {
                   event.preventDefault();
                   abrirProductos("Todos");
@@ -443,7 +466,9 @@ export default function App() {
 
               <a
                 href="#categorias"
-                aria-current={activePage === "categorias" ? "page" : undefined}
+                aria-current={
+                  activePage === "categorias" ? "page" : undefined
+                }
                 onClick={(event) => {
                   event.preventDefault();
                   abrirPagina("categorias");
@@ -454,7 +479,9 @@ export default function App() {
 
               <a
                 href="#carrito"
-                aria-current={activePage === "carrito" ? "page" : undefined}
+                aria-current={
+                  activePage === "carrito" ? "page" : undefined
+                }
                 onClick={(event) => {
                   event.preventDefault();
                   abrirPagina("carrito");
@@ -468,7 +495,9 @@ export default function App() {
           {role === "Administrador" && (
             <a
               href="#dashboard"
-              aria-current={activePage === "dashboard" ? "page" : undefined}
+              aria-current={
+                activePage === "dashboard" ? "page" : undefined
+              }
               onClick={(event) => {
                 event.preventDefault();
                 abrirPagina("dashboard");
@@ -555,14 +584,14 @@ export default function App() {
       {role === "Administrador" && activePage === "dashboard" && (
         <Dashboard
           email={email}
-          onBack={() => abrirPagina("dashboard")}
+          onBack={() => abrirPagina("inicio")}
         />
       )}
 
       {role === "Colaborador" && activePage === "colaborador" && (
         <Colaborador
           email={email}
-          onBack={() => abrirPagina("colaborador")}
+          onBack={() => abrirPagina("inicio")}
         />
       )}
 
