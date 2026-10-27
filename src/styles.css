@@ -1365,3 +1365,68 @@ footer {
 .role-back-button:hover {
   background: #713b26;
 }
+
+/* Tarjeta del informe de compras */
+.role-panel-card {
+  background: #fffaf5;
+  border: 1px solid #eadccd;
+  border-radius: 18px;
+  padding: 28px;
+  margin: 24px 0;
+  box-shadow: 0 6px 20px rgba(75, 48, 30, 0.07);
+}
+
+.role-panel-card h3 {
+  color: #5b3928;
+  font-size: 1.4rem;
+  margin: 0 0 12px;
+}
+
+.role-panel-card p {
+  color: #705e52;
+  line-height: 1.6;
+}
+
+/* Botón Generar informe PDF */
+.role-panel-card .role-back-button {
+  background: #6f4e37;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 22px;
+  margin-top: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.role-panel-card .role-back-button:hover:not(:disabled) {
+  background: #503522;
+  transform: translateY(-2px);
+}
+
+.role-panel-card .role-back-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* Mensaje de resultado */
+.role-panel-card [role="status"] {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f3eee6;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+/* Adaptación a celulares */
+@media (max-width: 600px) {
+  .role-panel-card {
+    padding: 20px;
+  }
+
+  .role-panel-card .role-back-button {
+    width: 100%;
+  }
+}
