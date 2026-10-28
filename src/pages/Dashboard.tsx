@@ -11,7 +11,7 @@ type Producto = {
   nombre: string;
   categoria: string;
   precio: number;
-  stock: number;
+  stock: number | null;
 };
 
 type PedidoItem = {
@@ -37,6 +37,124 @@ type InformeRespuesta = {
   unidadesVendidas?: number;
   totalVentas?: number | string;
   correoDestino?: string;
+};
+
+type Registro = Record<string, unknown>;
+
+const leerCampo = (objeto: Registro, nombres: string[]): unknown => {
+  for (const nombre of nombres) {
+    if (
+      Object.prototype.hasOwnProperty.call(objeto, nombre) &&
+      objeto[nombre] !== null &&
+      objeto[nombre] !== undefined &&
+      objeto[nombre] !== ""
+    ) {
+      return objeto[nombre];
+    }
+  }
+
+  return undefined;
+};
+
+const texto = (valor: unknown, defecto = ""): string =>
+  valor === null || valor === undefined || valor === ""
+    ? defecto
+    : String(valor);
+
+const numero = (valor: unknown, defecto = 0): number => {
+  if (valor === null || valor === undefined || valor === "") {
+    return defecto;
+  }
+
+  const resultado = Number(valor);
+  return Number.isFinite(resultado) ? resultado : defecto;
+};
+
+const normalizarProducto = (dato: unknown): Producto => {
+  const p = dato as Registro;
+
+  const id = numero(leerCampo(p, ["id", "productoId", "productId"]), NaN);
+  const nombre = texto(leerCampo(p, ["nombre", "name"]), "Producto");
+
+  const categoria = texto(
+    leerCampo(p, [
+      "categoria",
+      "category",
+      "nombreCategoria",
+      "categoriaNombre",
+    ]),
+    "Sin categoría"
+  );
+
+  const precio = numero(leerCampo(p, ["precio", "price"]), 0);
+
+  const stockOriginal = leerCampo(p, [
+    "stock",
+    "cantidad",
+    "inventario",
+    "existencia",
+    "unidadesDisponibles",
+    "stockActual",
+  ]);
+
+  const stock =
+    stockOriginal === undefined
+      ? null
+      : numero(stockOriginal, NaN);
+
+  return {
+    id,
+    nombre,
+    categoria,
+    precio,
+    stock: stock !== null && Number.isFinite(stock) ? stock : null,
+  };
+};
+
+const normalizarPedido = (dato: unknown): Pedido => {
+  const p = dato as Registro;
+  const itemsOriginales = leerCampo(p, ["items", "detalles", "productos"]);
+
+  const items: PedidoItem[] = Array.isArray(itemsOriginales)
+    ? itemsOriginales.map((elemento) => {
+        const item = elemento as Registro;
+
+        return {
+          productoId: leerCampo(item, [
+            "productoId",
+            "productId",
+            "idProducto",
+          ]) as number | string | null | undefined,
+          nombre: texto(
+            leerCampo(item, ["nombre", "nombreProducto", "name"]),
+            "Producto"
+          ),
+          cantidad: numero(
+            leerCampo(item, ["cantidad", "quantity"]),
+            0
+          ),
+          precio: numero(
+            leerCampo(item, ["precio", "price"]),
+            0
+          ),
+        };
+      })
+    : [];
+
+  return {
+    id: numero(leerCampo(p, ["id", "pedidoId", "orderId"]), 0),
+    cliente: texto(
+      leerCampo(p, ["cliente", "nombreCliente", "email", "customer"]),
+      "Cliente"
+    ),
+    items,
+    total: numero(leerCampo(p, ["total", "totalVenta", "amount"]), 0),
+    estado: texto(leerCampo(p, ["estado", "status"]), "Pendiente"),
+    creadoEn: texto(
+      leerCampo(p, ["creadoEn", "fechaCreacion", "fecha", "createdAt"]),
+      ""
+    ) || null,
+  };
 };
 
 export default function Dashboard({ email, onBack }: DashboardProps) {
@@ -91,32 +209,10 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
       const datos: unknown = await respuesta.json();
 
       if (!Array.isArray(datos)) {
-        throw new Error("La respuesta del servidor no contiene una lista de pedidos.");
+        throw new Error("La respuesta no contiene una lista de pedidos.");
       }
 
-      const pedidosNormalizados: Pedido[] = datos.map((dato) => {
-        const p = dato as Record<string, unknown>;
-
-        const items = Array.isArray(p.items)
-          ? (p.items as Record<string, unknown>[]).map((item) => ({
-              productoId: item.productoId as number | string | null | undefined,
-              nombre: String(item.nombre ?? "Producto"),
-              cantidad: Number(item.cantidad ?? 0),
-              precio: Number(item.precio ?? 0),
-            }))
-          : [];
-
-        return {
-          id: Number(p.id),
-          cliente: String(p.cliente ?? "Cliente"),
-          items,
-          total: Number(p.total ?? 0),
-          estado: String(p.estado ?? "Pendiente"),
-          creadoEn: p.creadoEn ? String(p.creadoEn) : null,
-        };
-      });
-
-      setPedidos(pedidosNormalizados);
+      setPedidos(datos.map(normalizarPedido));
     } catch (error) {
       setPedidos([]);
       setErrorPedidos(
@@ -151,22 +247,16 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
       const datos: unknown = await respuesta.json();
 
       if (!Array.isArray(datos)) {
-        throw new Error("La respuesta del servidor no contiene una lista de productos.");
+        throw new Error("La respuesta no contiene una lista de productos.");
       }
 
-      const productosNormalizados: Producto[] = datos.map((dato) => {
-        const p = dato as Record<string, unknown>;
+      const normalizados = datos.map(normalizarProducto);
 
-        return {
-          id: Number(p.id),
-          nombre: String(p.nombre ?? ""),
-          categoria: String(p.categoria ?? "Sin categoría"),
-          precio: Number(p.precio ?? 0),
-          stock: Number(p.stock ?? 0),
-        };
-      });
+      // Registro temporal para comprobar los nombres de campos de la API.
+      console.log("Productos recibidos del backend:", datos);
+      console.log("Productos normalizados:", normalizados);
 
-      setProductos(productosNormalizados);
+      setProductos(normalizados);
     } catch (error) {
       setProductos([]);
       setErrorProductos(
@@ -200,13 +290,13 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
     }
 
     window.alert(
-      "El formulario está preparado, pero debes conectar el endpoint POST de productos antes de guardar en la base de datos."
+      "El formulario está preparado, pero falta conectar el endpoint POST del backend."
     );
   };
 
   const eliminarProducto = async (_id: number) => {
     window.alert(
-      "Para eliminar productos de forma permanente, primero debemos conectar el endpoint DELETE del backend."
+      "Para eliminar productos permanentemente, falta conectar el endpoint DELETE del backend."
     );
   };
 
@@ -225,9 +315,7 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
         method: "POST",
       });
 
-      const datos: InformeRespuesta = await respuesta
-        .json()
-        .catch(() => ({}));
+      const datos: InformeRespuesta = await respuesta.json().catch(() => ({}));
 
       if (!respuesta.ok) {
         throw new Error(
@@ -239,7 +327,7 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
       setMensajeInforme(
         [
           datos.mensaje || "Informe enviado correctamente.",
-          datos.periodo ? `Periodo: ${datos.periodo}.` : "",
+          datos.periodo ? `Período: ${datos.periodo}.` : "",
           `Pedidos: ${datos.cantidadPedidos ?? 0}.`,
           `Unidades vendidas: ${datos.unidadesVendidas ?? 0}.`,
           `Ventas: ${formatoPrecio(Number(datos.totalVentas ?? 0))}.`,
@@ -259,11 +347,12 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
     }
   };
 
+  const ahora = new Date();
+
   const pedidosDelMes = pedidos.filter((pedido) => {
     if (!pedido.creadoEn) return false;
 
     const fecha = new Date(pedido.creadoEn);
-    const ahora = new Date();
 
     return (
       !Number.isNaN(fecha.getTime()) &&
@@ -280,25 +369,26 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
   const totalUnidadesMes = pedidosDelMes.reduce(
     (total, pedido) =>
       total +
-      pedido.items.reduce(
-        (suma, item) => suma + Number(item.cantidad || 0),
-        0
-      ),
+      pedido.items.reduce((suma, item) => suma + item.cantidad, 0),
     0
   );
 
   const totalProductos = productos.length;
 
   const stockTotal = productos.reduce(
-    (total, producto) => total + producto.stock,
+    (total, producto) => total + (producto.stock ?? 0),
     0
+  );
+
+  const stockDesconocido = productos.some(
+    (producto) => producto.stock === null
   );
 
   return (
     <div className="admin-dashboard">
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <span className="admin-brand-icon">☕</span>
+          <span className="admin-brand-icon">CF</span>
           <div>
             <h2>Coffee Flower</h2>
             <p>Panel administrativo</p>
@@ -306,70 +396,48 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
         </div>
 
         <nav className="admin-navigation">
-          <button
-            type="button"
-            className={seccion === "resumen" ? "active" : ""}
-            onClick={() => setSeccion("resumen")}
-          >
-            <span>▦</span> Resumen
-          </button>
-
-          <button
-            type="button"
-            className={seccion === "productos" ? "active" : ""}
-            onClick={() => setSeccion("productos")}
-          >
-            <span>☕</span> Productos
-          </button>
-
-          <button
-            type="button"
-            className={seccion === "pedidos" ? "active" : ""}
-            onClick={() => setSeccion("pedidos")}
-          >
-            <span>▤</span> Pedidos
-          </button>
-
-          <button
-            type="button"
-            className={seccion === "informes" ? "active" : ""}
-            onClick={() => setSeccion("informes")}
-          >
-            <span>✉</span> Informes
-          </button>
+          {[
+            ["resumen", "Resumen"],
+            ["productos", "Productos"],
+            ["pedidos", "Pedidos"],
+            ["informes", "Informes"],
+          ].map(([valor, etiqueta]) => (
+            <button
+              key={valor}
+              type="button"
+              className={seccion === valor ? "active" : ""}
+              onClick={() => setSeccion(valor)}
+            >
+              {etiqueta}
+            </button>
+          ))}
         </nav>
 
-        <div className="admin-sidebar-footer">
-          <span>●</span> Administración
-        </div>
+        <div className="admin-sidebar-footer">Administración</div>
       </aside>
 
       <main className="admin-main">
         <header className="admin-header">
           <div>
-            <p className="admin-eyebrow">
-              COFFEE FLOWER / ADMINISTRACIÓN
-            </p>
-
+            <p className="admin-eyebrow">COFFEE FLOWER / ADMINISTRACIÓN</p>
             <h1>
-              {seccion === "resumen" && "Resumen general"}
-              {seccion === "productos" && "Gestión de productos"}
-              {seccion === "pedidos" && "Gestión de pedidos"}
-              {seccion === "informes" && "Informes"}
+              {{
+                resumen: "Resumen general",
+                productos: "Gestión de productos",
+                pedidos: "Gestión de pedidos",
+                informes: "Informes",
+              }[seccion] || "Administración"}
             </h1>
-
             <p className="admin-subtitle">
               Administra tu cafetería y pastelería desde un solo lugar.
             </p>
           </div>
 
           <div className="admin-user">
-            <span className="admin-avatar">A</span>
             <div>
               <strong>Administrador</strong>
               <small>{email || "Sesión iniciada"}</small>
             </div>
-
             <button
               type="button"
               className="admin-primary-button"
@@ -384,45 +452,35 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
           <>
             <section className="admin-welcome">
               <div>
-                <span className="admin-welcome-tag">
-                  ✦ PANEL DE CONTROL
-                </span>
-
-                <h2>¡Bienvenido a Coffee Flower!</h2>
-
+                <span className="admin-welcome-tag">PANEL DE CONTROL</span>
+                <h2>Bienvenido a Coffee Flower</h2>
                 <p>
-                  Revisa los productos, controla el inventario y consulta
-                  los pedidos de tu negocio.
+                  Revisa los productos, controla el inventario y consulta los
+                  pedidos de tu negocio.
                 </p>
               </div>
-
-              <div className="admin-coffee-decoration">☕</div>
             </section>
 
             <section className="admin-stats">
               <article className="admin-stat-card">
-                <div className="admin-stat-icon">☕</div>
                 <p>Productos registrados</p>
                 <h2>{cargandoProductos ? "…" : totalProductos}</h2>
-                <small>Datos consultados del backend</small>
+                <small>Datos del backend</small>
               </article>
 
               <article className="admin-stat-card">
-                <div className="admin-stat-icon">▤</div>
                 <p>Pedidos del mes</p>
                 <h2>{cargandoPedidos ? "…" : pedidosDelMes.length}</h2>
                 <small>Pedidos registrados este mes</small>
               </article>
 
               <article className="admin-stat-card">
-                <div className="admin-stat-icon">◉</div>
                 <p>Unidades vendidas</p>
                 <h2>{cargandoPedidos ? "…" : totalUnidadesMes}</h2>
                 <small>Unidades de los pedidos del mes</small>
               </article>
 
               <article className="admin-stat-card">
-                <div className="admin-stat-icon">＄</div>
                 <p>Ventas del mes</p>
                 <h2>
                   {cargandoPedidos ? "…" : formatoPrecio(ventasDelMes)}
@@ -432,18 +490,10 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
             </section>
 
             {(errorPedidos || errorProductos) && (
-              <div className="admin-panel">
-                {errorPedidos && (
-                  <p className="admin-note" role="alert">
-                    Pedidos: {errorPedidos}
-                  </p>
-                )}
-                {errorProductos && (
-                  <p className="admin-note" role="alert">
-                    Productos: {errorProductos}
-                  </p>
-                )}
-              </div>
+              <section className="admin-panel">
+                {errorPedidos && <p role="alert">{errorPedidos}</p>}
+                {errorProductos && <p role="alert">{errorProductos}</p>}
+              </section>
             )}
 
             <section className="admin-panel">
@@ -452,7 +502,6 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                   <h2>Productos del catálogo</h2>
                   <p>Productos recibidos desde el backend.</p>
                 </div>
-
                 <button
                   type="button"
                   className="admin-primary-button"
@@ -472,7 +521,6 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                       <th>Stock</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {productos.slice(0, 5).map((producto) => (
                       <tr key={producto.id}>
@@ -480,29 +528,33 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                         <td>{producto.categoria}</td>
                         <td>{formatoPrecio(producto.precio)}</td>
                         <td>
-                          <span
-                            className={
-                              producto.stock <= 5
-                                ? "admin-stock low"
-                                : "admin-stock"
-                            }
-                          >
-                            {producto.stock} unidades
-                          </span>
+                          {producto.stock === null
+                            ? "No informado"
+                            : `${producto.stock} unidades`}
                         </td>
                       </tr>
                     ))}
-
                     {!cargandoProductos && productos.length === 0 && (
                       <tr>
-                        <td colSpan={4}>
-                          No hay productos disponibles o no se pudieron cargar.
-                        </td>
+                        <td colSpan={4}>No hay productos disponibles.</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
+
+              {!cargandoProductos && stockDesconocido && (
+                <p className="admin-note">
+                  Algunos productos no incluyen información de stock en la
+                  respuesta del backend. Revisa los datos de la API.
+                </p>
+              )}
+
+              {!cargandoProductos && !stockDesconocido && (
+                <p className="admin-note">
+                  Stock total informado: {stockTotal} unidades.
+                </p>
+              )}
             </section>
           </>
         )}
@@ -514,7 +566,6 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                 <h2>Catálogo de productos</h2>
                 <p>Productos cargados desde el backend.</p>
               </div>
-
               <button
                 type="button"
                 className="admin-primary-button"
@@ -529,10 +580,7 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
               <p className="admin-note" role="alert">{errorProductos}</p>
             )}
 
-            <form
-              className="admin-product-form"
-              onSubmit={agregarProducto}
-            >
+            <form className="admin-product-form" onSubmit={agregarProducto}>
               <label>
                 Nombre del producto
                 <input
@@ -580,7 +628,7 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
               </label>
 
               <button className="admin-primary-button" type="submit">
-                + Agregar producto
+                Agregar producto
               </button>
             </form>
 
@@ -595,14 +643,17 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                     <th>Acciones</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {productos.map((producto) => (
                     <tr key={producto.id}>
                       <td><strong>{producto.nombre}</strong></td>
                       <td>{producto.categoria}</td>
                       <td>{formatoPrecio(producto.precio)}</td>
-                      <td>{producto.stock}</td>
+                      <td>
+                        {producto.stock === null
+                          ? "No informado"
+                          : producto.stock}
+                      </td>
                       <td>
                         <button
                           type="button"
@@ -614,7 +665,6 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                       </td>
                     </tr>
                   ))}
-
                   {!cargandoProductos && productos.length === 0 && (
                     <tr>
                       <td colSpan={5}>No hay productos para mostrar.</td>
@@ -626,8 +676,8 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
 
             <p className="admin-note">
               La consulta de productos está conectada. Para crear o eliminar
-              productos de forma permanente, faltan los endpoints de escritura
-              del backend.
+              productos permanentemente, faltan los endpoints de escritura del
+              backend.
             </p>
           </section>
         )}
@@ -639,7 +689,6 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                 <h2>Pedidos registrados</h2>
                 <p>Pedidos consultados desde el backend.</p>
               </div>
-
               <button
                 type="button"
                 className="admin-primary-button"
@@ -655,7 +704,7 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
             )}
 
             {cargandoPedidos ? (
-              <p className="admin-note">Cargando pedidos reales...</p>
+              <p className="admin-note">Cargando pedidos...</p>
             ) : (
               <div className="admin-table-wrapper">
                 <table className="admin-table">
@@ -669,7 +718,6 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                       <th>Fecha</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {pedidos.map((pedido) => (
                       <tr key={pedido.id}>
@@ -677,14 +725,15 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                         <td>{pedido.cliente}</td>
                         <td>
                           {pedido.items
-                            .map((item) => `${item.nombre} × ${item.cantidad}`)
+                            .map(
+                              (item) =>
+                                `${item.nombre} × ${item.cantidad}`
+                            )
                             .join(", ") || "Sin detalle"}
                         </td>
                         <td>{formatoPrecio(pedido.total)}</td>
                         <td>
-                          <span className="admin-status">
-                            {pedido.estado}
-                          </span>
+                          <span className="admin-status">{pedido.estado}</span>
                         </td>
                         <td>
                           {pedido.creadoEn
@@ -693,12 +742,9 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
                         </td>
                       </tr>
                     ))}
-
                     {pedidos.length === 0 && !errorPedidos && (
                       <tr>
-                        <td colSpan={6}>
-                          No hay pedidos registrados en la base de datos.
-                        </td>
+                        <td colSpan={6}>No hay pedidos registrados.</td>
                       </tr>
                     )}
                   </tbody>
@@ -714,20 +760,19 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
               <div>
                 <h2>Informe mensual de ventas</h2>
                 <p>
-                  Envía el resumen de ventas al correo configurado del
-                  administrador, sin PDF ni archivos adjuntos.
+                  Envía el resumen de ventas al correo configurado en el
+                  backend. El formato del correo se gestiona en el servicio
+                  que genera el informe.
                 </p>
               </div>
             </div>
 
             <div className="admin-report-card">
-              <div className="admin-report-icon">✉</div>
-
               <div>
                 <h3>Ventas del mes actual</h3>
                 <p>
-                  El backend calculará los pedidos, las unidades vendidas y
-                  el total de ventas usando los registros de la base de datos.
+                  El backend calcula los pedidos, las unidades vendidas y el
+                  total de ventas usando los registros de la base de datos.
                 </p>
               </div>
 
@@ -744,21 +789,17 @@ export default function Dashboard({ email, onBack }: DashboardProps) {
             </div>
 
             {mensajeInforme && (
-              <p className="admin-note" role="status">
-                {mensajeInforme}
-              </p>
+              <p className="admin-note" role="status">{mensajeInforme}</p>
             )}
 
             {errorInforme && (
-              <p className="admin-note" role="alert">
-                {errorInforme}
-              </p>
+              <p className="admin-note" role="alert">{errorInforme}</p>
             )}
           </section>
         )}
 
         <footer className="admin-footer">
-          <span>☕ Coffee Flower</span>
+          <span>Coffee Flower</span>
           <span>Panel de administración</span>
         </footer>
       </main>
